@@ -13,19 +13,23 @@ typedef struct vector
 	int x;
 } vector;
 
-typedef struct object
+typedef struct objectNode
 {
 	char* type;
 	pixel* pix;
 	vector* postion;
+	int radius;
+	vector* normal;
 
-}
+	struct nextObjectNode*;
 
-node* raycast(file* fp, width, height);
+} objectNode;
 
-shoot();
 
-shade();
+node* raycast(FILE* fp, width, height);
+objectNode* readObjects(FILE* fp);
+object* shoot(vector* rayVector, objectNode* head);
+pixel* shade(object* hitOject);
 
 
 
