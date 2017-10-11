@@ -1,6 +1,6 @@
 #include "linkedlist.h"
  
-node* make_node(int R, int G, int B)
+node* make_node(pixel* pix)
 {
     // allocate some space for the node
     node* newNode = (node*) malloc(sizeof(node));
@@ -12,13 +12,8 @@ node* make_node(int R, int G, int B)
         exit(-1);
     }
 
-    pixel* pix = (pixel*) malloc(sizeof(pixel));
+    // set newNode's pix to parameter pix;
     newNode->pix = pix;
-
-    // set the node's data
-    pix->R = R;
-    pix->G = G;
-    pix->B = B;
 
     // don't connect the node to anything
     newNode->next = NULL;
