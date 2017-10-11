@@ -5,13 +5,14 @@ into a pixel buffer, which can then write the pixel buffer to a PPM formatted fi
 
 Usage
 ------------------------
-To be determined
+To use this program, got to the directory in command line and then call make.
+Then exectute the raycast exectuable with arguments (int) height, (int) width, (string) input_file_name, (string) output_file_name.
 
 Known Issues
 ------------------------
 None yet
 
-Author and Date
+Date and Author
 -----------------------
-Leia Trice - lat222@nau.edu
 10/14/17
+Leia Trice - lat222@nau.edu
