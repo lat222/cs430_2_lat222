@@ -5,27 +5,53 @@ node* raycast(FILE* fp, width, height)
 	// create the head of the linked list
 	node* headPixel = (node*) malloc(sizeof(node));
 
-	objectNode* headObject = readObjects(fp);
+	// Assume the first line is always the camera
+	// then set camera width and height to cx and cy
+	char* line = NULL;
+    size_t len = 0;
+    ssize_t read;
 
-	// TODO: Read in the first line and probably set camera width and height to w and h?
-	float pixheight = float(h) / float(M); // the height of one pixel
-	float pixwidth = float(w) / float(N); // the width of one pixel
+    if ((read = getline(&line, &len, fp)) != -1)
+    {
+    	// check that the first object is a camera
+    	char* token = strtok(line,",")
+    	if(strcmp(token,"camera") == 1)
+    	{
+    		int cx,cy;
+    		token = strtok(NULL,",");
+    		while(token)
+    		{
+    			
+    			token = strtok(NULL,",");
+    		}
+    		objectNode* headObject = readObjects(fp);
 
-	int rowCounter = 0;
-	while(rowCounter < M)
-	{ // for each row
-		int py = cy - h / 2 + pixheight * (rowCounter + 0.5); // y coord of row
-		int columnCounter = 0;
-		while(columnCounter < N)
-		{ // for each column
-			int px = cx - w / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
-			int pz = −zp; // z coord is on screen
-			vector* ur = p/kpk; // unit ray vector
-			x = shoot(ur, headObject); // return position of first hit
-			insert_node(make_node(shade(x)),head);	// pixel colored by object hit; TODO: fix what make_node takes in
-		}
-		rowCounter++;
-	}
+			float pixheight = float(h) / float(M); // the height of one pixel
+			float pixwidth = float(w) / float(N); // the width of one pixel
+
+			int rowCounter = 0;
+			while(rowCounter < M)
+			{ // for each row
+				int py = cy - h / 2 + pixheight * (rowCounter + 0.5); // y coord of row
+				int columnCounter = 0;
+
+				while(columnCounter < N)
+				{ // for each column
+					int px = cx - w / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
+					int pz = −zp; // z coord is on screen
+					vector* ur = p/kpk; // unit ray vector
+					x = shoot(ur, headObject); // return position of first hit
+					insert_node(make_node(shade(x)),head);	// pixel colored by object hit; TODO: fix what make_node takes in
+				}
+
+				rowCounter++;
+			}
+    	}
+    	else
+    	{
+    		fprintf(stderr,"ERROR: First object in input file was not 'camera'");
+    	}
+    }
 
 	return headPixel;
 }
