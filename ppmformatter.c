@@ -14,7 +14,7 @@ void write_p3(FILE* fp, node* head)
         {
             break;
         }
-        fprintf(fp, "%d\n%d\n%d\n", current->pix->R, current->pix->G, current->pix->B);
+        fprintf(fp, "%d %d %d\n", current->pix->R, current->pix->G, current->pix->B);
         current = current->next;
     }
 }

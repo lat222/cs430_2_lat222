@@ -6,7 +6,7 @@
 
 #include "linkedlist.h"
 
-void write_p3(FILE* fp);
+void write_p3(FILE* fp, node* head);
 
 
 #endif
