@@ -1,6 +1,6 @@
 #include "linkedlist.h"
  
-node* make_node(unsigned char R, unsigned char G, unsigned char B)
+node* make_node(int R, int G, int B)
 {
     // allocate some space for the node
     node* newNode = (node*) malloc(sizeof(node));
