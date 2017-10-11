@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "linkedlist.h"
+#include "helperfuncs.h"
 
 typedef struct vector
 {

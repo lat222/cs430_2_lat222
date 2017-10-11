@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int check_file_path(char* fp);
+
 char* cut_string_at_char(char* inString, char charToCutOut); // cuts inString at character charToCutOut (exclusive)
 
 char* cut_string_after_char(char* inString, char charToCutOut); // cuts inString string after character charToCutOut (inclusive)
