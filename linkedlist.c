@@ -12,10 +12,13 @@ node* make_node(unsigned char R, unsigned char G, unsigned char B)
         exit(-1);
     }
 
+    pixel* pix = (pixel*) malloc(sizeof(pixel));
+    newNode->pix = pix;
+
     // set the node's data
-    newNode->R = R;
-    newNode->G = G;
-    newNode->B = B;
+    pix->R = R;
+    pix->G = G;
+    pix->B = B;
 
     // don't connect the node to anything
     newNode->next = NULL;
