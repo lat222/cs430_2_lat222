@@ -6,7 +6,7 @@ into a pixel buffer, which can then write the pixel buffer to a PPM formatted fi
 Usage
 ------------------------
 To use this program, got to the directory in command line and then call make.
-Then exectute the raycast exectuable with arguments (int) height, (int) width, (string) input_file_name, (string) output_file_name.
+Then execute the raycast exectuable with arguments (int) height, (int) width, (string) input_file_name, (string) output_file_name.
 
 Known Issues
 ------------------------
