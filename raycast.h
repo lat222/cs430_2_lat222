@@ -16,7 +16,7 @@ typedef struct vector
 
 typedef struct objectNode
 {
-	char* type;
+	char type;
 	pixel* pix;
 	vector* postion;
 	int radius;

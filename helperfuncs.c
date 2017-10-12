@@ -61,3 +61,20 @@ char* get_string_after_char(char* inString, char charToCutOut)
 	returnString[pointer] = '\0';
 	return returnString;
 }
+
+int count_char_in_string(char* inString, char charToCount)
+{
+	// counts how many instances of charToCount exist in inString
+	// returns that count
+	int instancesOfChar = 0;
+	int charInString = 0;
+	while(inString[charInString]!='\0')
+	{
+		if (inString[charInString] == charToCount)
+		{
+			instancesOfChar++;
+		}
+		charInString++;
+	}
+	return instancesOfChar;
+}

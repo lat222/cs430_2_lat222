@@ -7,10 +7,15 @@
 
 int check_file_path(char* fp);
 
-char* cut_string_at_char(char* inString, char charToCutOut); // cuts inString at character charToCutOut (exclusive)
+// exclusive
+char* cut_string_at_char(char* inString, char charToCutOut); // cuts inString at character charToCutOut
 
-char* cut_string_after_char(char* inString, char charToCutOut); // cuts inString string after character charToCutOut (inclusive)
+// inclusive
+char* cut_string_after_char(char* inString, char charToCutOut); // cuts inString string after character charToCutOut
 
-char* get_string_after_char(char* inString, char charToCutOut); // cuts inString String after charToCutOut character and gives the half after charToCutOut (exclusive)
+// exclusive
+char* get_string_after_char(char* inString, char charToCutOut); // cuts inString String after charToCutOut character and gives the half after charToCutOut
+
+int count_char_in_string(char* inString, char charToCount);
 
 #endif
