@@ -24,7 +24,7 @@ node* make_node(pixel* pix)
 
 // editted, but based off of 
 // http://stackoverflow.com/questions/5797548/c-linked-list-inserting-node-at-the-end
- void insert_command(node *newNode, node *head){
+ void insert_node(node *newNode, node *head){
 
     // set current to the head of the linked list
     // current will then be used to loop through the entire list until the end, where the newNode will be added

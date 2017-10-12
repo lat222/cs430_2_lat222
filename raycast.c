@@ -58,26 +58,22 @@ node* raycast(FILE* fp, int width, int height)
 
 	// Finished reading in file, now is the time to start Raycasting!
 	// M and N are arbitrary amounts of pixels
-	int M = 10;
-	int N = 1;
-	long double pixheight = height / M; // the height of one pixel
-	long double pixwidth = width / N; // the width of one pixel
+	long double pixheight = height / cy; // the height of one pixel
+	long double pixwidth = width / cx; // the width of one pixel
 
 	int rowCounter = 0;
-	while(rowCounter < M)
+	while(rowCounter < height)
 	{ // for each row
-		float py = cy - height / 2 + (height / M) * (rowCounter + 0.5); // y coord of row
-		printf("%f - %d / 2 + (%d / %d) * (%d +0.5) = %f\n",cy,height,height,M,pixheight,rowCounter,py);
+		float py = 0 - cy / 2 + pixheight * (rowCounter + 0.5); // y coord of row
 		int columnCounter = 0;
 
-		while(columnCounter < N)
+		while(columnCounter < width)
 		{ // for each column
-			float px = cx - width / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
+			float px = 0 - cx / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
 			float pz = -1; // z coord is on screen TODO: Is this right?
 			vector* ur = make_unit_vector(px,py,pz); // unit ray vector
-			//printf("%d: %f %f %f -> %f %f %f\n",rowCounter,px,py,pz,ur->x,ur->y,ur->z);
-			//objectNode* x = shoot(ur, headObject); // return position of first hit
-			//insert_node(make_node(shade(x)),headPixel);	// pixel colored by object hit; TODO: fix what make_node takes in
+			objectNode* x = shoot(ur, headObject); // return position of first hit
+			insert_node(make_node(shade(x)),headPixel);	// pixel colored by object hit; TODO: fix what make_node takes in
 			columnCounter++;
 		}
 

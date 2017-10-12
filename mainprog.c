@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 			// write header into file
 			fprintf(fp, "P3\n%d %d\n%d\n", width, height, maxColor); //TODO: how are these numbers decided????????
 
-			write_p3(fp, head);
+			write_p3(fp, head, atoi(argv[1]), atoi(argv[2]));
 
 			fclose(fp);		// done with the output file so close it*/
 

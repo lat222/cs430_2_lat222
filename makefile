@@ -18,7 +18,7 @@ raycast.o: raycast.c raycast.h linkedlist.h helperfuncs.h
 linkedlist.o : linkedlist.c linkedlist.h
 	$(CC) $(CFLAGS) linkedlist.c
 
-helperfuncs.o : helperfuncs.c helperfuncs.o
+helperfuncs.o : helperfuncs.c helperfuncs.h
 	$(CC) $(CFLAGS) helperfuncs.c
 
 
