@@ -11,7 +11,7 @@ node* raycast(FILE* fp, int width, int height)
     size_t len = 0;
     ssize_t read;
 
-	int cx,cy;
+	float cx,cy;
 
 	if((read = getline(&line, &len, fp)) != -1)
 	{
@@ -23,29 +23,13 @@ node* raycast(FILE* fp, int width, int height)
 			if(strcmp(cut_string_at_char(current,':'),"width") == 0)
 			{
 				cx = atof(cut_string_at_char(get_string_after_char(current,' '),','));
-				printf("cx = %d\n", cx);
+				
 				current = get_string_after_char(get_string_after_char(current,','),' ');
-				// Causes a SEG Fault!!! FUCK!!!
-				/*if(strcmp(cut_string_at_char(current,':'),"height") == 0)
+				if(strcmp(cut_string_at_char(current,':'),"height") == 0)
 				{
-					cy = atof(cut_string_at_char(get_string_after_char(current,' '),','));
-					printf("cy = %d\n", cy);
+					cy = atof(get_string_after_char(current,' '));
 				}
 				else{
-					fprintf(stderr, "Camera properties are incorrect\n");
-					exit(0);
-				}*/
-			}
-			else if(strcmp(cut_string_at_char(current,':'),"height") == 0)
-			{
-				cy = atof(cut_string_at_char(get_string_after_char(current,' '),','));
-				current = get_string_after_char(get_string_after_char(current,','),' ');
-				if(strcmp(cut_string_at_char(current,':'),"width") == 0)
-				{
-					cx = atof(cut_string_at_char(get_string_after_char(current,' '),','));
-				}
-				else
-				{
 					fprintf(stderr, "Camera properties are incorrect\n");
 					exit(0);
 				}
@@ -179,116 +163,6 @@ objectNode* readObject(char* line)
 					position->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
 					position->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
 					newObject->position = position;
-				}
-				else
-				{
-					fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
-					exit(0);
-				}
-			}
-			else
-			{
-				fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
-				exit(0);
-			}
-		}
-		else if(strcmp(cut_string_at_char(current,':'),"position") == 0)
-		{
-			vector* position = (vector*) malloc(sizeof(vector));
-			position->x = atoi(cut_string_at_char(get_string_after_char(current,'['),','));
-			position->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
-			position->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-			newObject->position = position;
-
-			current = get_string_after_char(get_string_after_char(current,','),' ');
-			if(strcmp(cut_string_at_char(current,':'),"radius") == 0)
-			{
-				newObject->radius = atoi(cut_string_at_char(get_string_after_char(current,' '),','));
-
-				current = get_string_after_char(get_string_after_char(current,','),' ');
-				if(strcmp(cut_string_at_char(current,':'),"color") == 0)
-				{
-					pixel* pix = (pixel*) malloc(sizeof(pixel));
-					pix->R = atof(cut_string_at_char(get_string_after_char(current,'['),','));
-					pix->G = atof(cut_string_at_char(get_string_after_char(current,','),','));
-					pix->B = atof(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-					newObject->pix = pix;
-				}
-				else
-				{
-					fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
-					exit(0);
-				}
-			}
-			else if(strcmp(cut_string_at_char(current,':'),"color") == 0)
-			{
-				pixel* pix = (pixel*) malloc(sizeof(pixel));
-				pix->R = atof(cut_string_at_char(get_string_after_char(current,'['),','));
-				pix->G = atof(cut_string_at_char(get_string_after_char(current,','),','));
-				pix->B = atof(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-				newObject->pix = pix;
-
-				current = get_string_after_char(get_string_after_char(current,','),' ');
-				if(strcmp(cut_string_at_char(current,':'),"radius") == 0)
-				{
-					newObject->radius = atoi(get_string_after_char(current,' '));
-				}
-				else
-				{
-					fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
-					exit(0);
-				}
-			}
-			else
-			{
-				fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
-				exit(0);
-			}
-		}
-		else if(strcmp(cut_string_at_char(current,':'),"radius") == 0)
-		{
-			newObject->radius = atoi(cut_string_at_char(get_string_after_char(current,' '),','));
-
-			current = get_string_after_char(get_string_after_char(current,','),' ');
-			if(strcmp(cut_string_at_char(current,':'),"color") == 0)
-			{
-				pixel* pix = (pixel*) malloc(sizeof(pixel));
-				pix->R = atof(cut_string_at_char(get_string_after_char(current,'['),','));
-				pix->G = atof(cut_string_at_char(get_string_after_char(current,','),','));
-				pix->B = atof(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-				newObject->pix = pix;
-
-				current = get_string_after_char(get_string_after_char(current,','),' ');
-				if(strcmp(cut_string_at_char(current,':'),"position") == 0)
-				{
-					vector* position = (vector*) malloc(sizeof(vector));
-					position->x = atoi(cut_string_at_char(get_string_after_char(current,'['),','));
-					position->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
-					position->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-					newObject->position = position;
-				}
-				else
-				{
-					fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
-					exit(0);
-				}
-			}
-			else if(strcmp(cut_string_at_char(current,':'),"position") == 0)
-			{
-				vector* position = (vector*) malloc(sizeof(vector));
-				position->x = atoi(cut_string_at_char(get_string_after_char(current,'['),','));
-				position->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
-				position->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-				newObject->position = position;
-
-				current = get_string_after_char(get_string_after_char(current,','),' ');
-				if(strcmp(cut_string_at_char(current,':'),"color") == 0)
-				{
-					pixel* pix = (pixel*) malloc(sizeof(pixel));
-					pix->R = atof(cut_string_at_char(get_string_after_char(current,'['),','));
-					pix->G = atof(cut_string_at_char(get_string_after_char(current,','),','));
-					pix->B = atof(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-					newObject->pix = pix;
 				}
 				else
 				{
