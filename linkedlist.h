@@ -25,5 +25,4 @@ node* make_node(pixel* pix);
 // inserts a node into the end of the linked list
 void insert_node(node *newNode, node *head);
 
-
 #endif

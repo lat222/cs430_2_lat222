@@ -48,70 +48,62 @@ node* raycast(FILE* fp, int width, int height)
 		free(current);
 	}
 
-	objectNode* headObject = readObjectFile(fp);
+	objectNode* headObject;
+	if((read = getline(&line, &len, fp)) != -1)
+	{
+		headObject = readObject(line);
+	}
+	readObjectFile(fp,headObject);
 
-	/*float pixheight = float(h) / float(M); // the height of one pixel
-	float pixwidth = float(w) / float(N); // the width of one pixel
+
+	// Finished reading in file, now is the time to start Raycasting!
+	// M and N are arbitrary amounts of pixels
+	int M = 10;
+	int N = 1;
+	long double pixheight = height / M; // the height of one pixel
+	long double pixwidth = width / N; // the width of one pixel
 
 	int rowCounter = 0;
 	while(rowCounter < M)
 	{ // for each row
-		int py = cy - h / 2 + pixheight * (rowCounter + 0.5); // y coord of row
+		float py = cy - height / 2 + (height / M) * (rowCounter + 0.5); // y coord of row
+		printf("%f - %d / 2 + (%d / %d) * (%d +0.5) = %f\n",cy,height,height,M,pixheight,rowCounter,py);
 		int columnCounter = 0;
 
 		while(columnCounter < N)
 		{ // for each column
-			int px = cx - w / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
-			int pz = −zp; // z coord is on screen
-			vector* ur = p/kpk; // unit ray vector
-			x = shoot(ur, headObject); // return position of first hit
-			insert_node(make_node(shade(x)),head);	// pixel colored by object hit; TODO: fix what make_node takes in
+			float px = cx - width / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
+			float pz = -1; // z coord is on screen TODO: Is this right?
+			vector* ur = make_unit_vector(px,py,pz); // unit ray vector
+			//printf("%d: %f %f %f -> %f %f %f\n",rowCounter,px,py,pz,ur->x,ur->y,ur->z);
+			//objectNode* x = shoot(ur, headObject); // return position of first hit
+			//insert_node(make_node(shade(x)),headPixel);	// pixel colored by object hit; TODO: fix what make_node takes in
+			columnCounter++;
 		}
 
 		rowCounter++;
-    }*/
+    }
 
 	return headPixel;
 }
 
-objectNode* readObjectFile(FILE* fp){
-	// reads in all the objects and stores them in a linked list
-	objectNode* headObject = (objectNode*) malloc(sizeof(objectNode));
-
+void readObjectFile(FILE* fp, objectNode* head){
 	// variables to store what is read in from input file
     char* line = NULL;
     size_t len = 0;
     ssize_t read;
 
-    objectNode* current;
+    objectNode* current = head;
 	while((read = getline(&line, &len, fp)) != -1)
 	{
-		/*if(headObject == NULL)
+		if(current->next == NULL)
 		{
-			headObject = readObject(line);
-			current = headObject;
+			current->next = readObject(line);
 		}
-		else
-		{
-			current = readObject(line);
-		}
-		current->next = NULL;
-		current = current->next;*/
-		current = readObject(line);
-		printf("%c, %d, %d, %d \n",current->type, current->pix->R, current->position->x, current->radius);
-
-	}
-
-	// TODO: Delete this shit
-	/*current = headObject;
-	while(current != NULL)
-	{
-		printf("%c, %d, %d, %d \n",current->type, current->pix->R, current->position->x, current->radius);
 		current = current->next;
-	}*/
-
-	return headObject;
-
+		current->next = NULL;
+	}
+	free(line);
 }
 
 
@@ -217,7 +209,19 @@ objectNode* readObject(char* line)
 		exit(0);
 	}
 
+	free(current);
+
 	return newObject;
+}
+
+vector* make_unit_vector(float x, float y, float z)
+{
+	float length = powf((powf(x,2.0)+powf(y,2.0)+powf(z,2.0)),0.5);
+	vector* unit_vector = (vector*) malloc(sizeof(vector));
+	unit_vector->x = x/length;
+	unit_vector->y = y/length;
+	unit_vector->z = z/length;
+	return unit_vector;
 }
 
 objectNode* shoot(vector* rayVector, objectNode* head)

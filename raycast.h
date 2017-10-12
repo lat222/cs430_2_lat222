@@ -3,13 +3,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "linkedlist.h"
 #include "helperfuncs.h"
 
 typedef struct vector
 {
-	int x,y,z;
+	float x,y,z;
 } vector;
 
 typedef struct objectNode
@@ -27,8 +28,9 @@ typedef struct objectNode
 int main(int argc, char* argv[]);
 
 node* raycast(FILE* fp, int width, int height);
-objectNode* readObjectFile(FILE* fp);
+void readObjectFile(FILE* fp, objectNode* head);
 objectNode* readObject(char* line);
+vector* make_unit_vector(float x, float y, float z);
 objectNode* shoot(vector* rayVector, objectNode* head);
 pixel* shade(objectNode* hitOject);
 
