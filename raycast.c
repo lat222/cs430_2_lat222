@@ -23,7 +23,7 @@ node* raycast(FILE* fp, int width, int height)
 			if(strcmp(cut_string_at_char(current,':'),"width") == 0)
 			{
 				cx = atof(cut_string_at_char(get_string_after_char(current,' '),','));
-				
+
 				current = get_string_after_char(get_string_after_char(current,','),' ');
 				if(strcmp(cut_string_at_char(current,':'),"height") == 0)
 				{
@@ -151,25 +151,6 @@ objectNode* readObject(char* line)
 					exit(0);
 				}
 			}
-			else if(strcmp(cut_string_at_char(current,':'),"radius") == 0)
-			{
-				newObject->radius = atoi(cut_string_at_char(get_string_after_char(current,' '),','));
-
-				current = get_string_after_char(get_string_after_char(current,','),' ');
-				if(strcmp(cut_string_at_char(current,':'),"position") == 0)
-				{
-					vector* position = (vector*) malloc(sizeof(vector));
-					position->x = atoi(cut_string_at_char(get_string_after_char(current,'['),','));
-					position->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
-					position->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-					newObject->position = position;
-				}
-				else
-				{
-					fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
-					exit(0);
-				}
-			}
 			else
 			{
 				fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
@@ -185,6 +166,50 @@ objectNode* readObject(char* line)
 	else if(strcmp(cut_string_at_char(current,','),"plane") == 0)
 	{
 		newObject->type = 'p';
+		current = get_string_after_char(current,' ');
+		if(strcmp(cut_string_at_char(current,':'),"color") == 0)
+		{
+			pixel* pix = (pixel*) malloc(sizeof(pixel));
+			pix->R = atof(cut_string_at_char(get_string_after_char(current,'['),','));
+			pix->G = atof(cut_string_at_char(get_string_after_char(current,','),','));
+			pix->B = atof(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
+			newObject->pix = pix;
+
+			current = get_string_after_char(get_string_after_char(current,']'),' ');
+			if(strcmp(cut_string_at_char(current,':'),"position") == 0)
+			{
+				vector* position = (vector*) malloc(sizeof(vector));
+				position->x = atoi(cut_string_at_char(get_string_after_char(current,'['),','));
+				position->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
+				position->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
+				newObject->position = position;
+
+				current = get_string_after_char(get_string_after_char(current,']'),' ');
+				if(strcmp(cut_string_at_char(current,':'),"normal") == 0)
+				{
+					vector* normal = (vector*) malloc(sizeof(vector));
+					normal->x = atoi(cut_string_at_char(get_string_after_char(current,'['),','));
+					normal->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
+					normal->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
+					newObject->normal = normal;
+				}
+				else
+				{
+					fprintf(stderr, "Plane property %s is incorrect.\n", cut_string_at_char(current,':'));
+					exit(0);
+				}
+			}
+			else
+			{
+				fprintf(stderr, "Plane property %s is incorrect.\n", cut_string_at_char(current,':'));
+				exit(0);
+			}
+		}
+		else
+		{
+			fprintf(stderr, "Plane property %s is incorrect.\n", cut_string_at_char(current,':'));
+			exit(0);
+		}		
 	}
 	else
 	{
