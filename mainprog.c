@@ -22,11 +22,11 @@ int main(int argc, char* argv[])
 		    fclose(fp);		// done with the input file so close it
 			
 		    // WRITING BEGINS
-			/*fp = fopen(argv[4], "w");	// open the file to write to
+			fp = fopen(argv[4], "w");	// open the file to write to
 
 			write_p3(fp, head, atoi(argv[1]), atoi(argv[2]));
 
-			fclose(fp);		// done with the output file so close it*/
+			fclose(fp);		// done with the output file so close it
 
 		}
 		// input file does not exist
