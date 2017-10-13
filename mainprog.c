@@ -21,10 +21,8 @@ int main(int argc, char* argv[])
 			node* head  = raycast(fp,atoi(argv[1]),atoi(argv[2])); //TODO: define this function and decide if height and width matter...
 		    fclose(fp);		// done with the input file so close it
 			
-		    /*// WRITING BEGINS
-			fp = fopen(argv[4], "w");	// open the file to write to
-			// write header into file
-			fprintf(fp, "P3\n%d %d\n%d\n", width, height, maxColor); //TODO: how are these numbers decided????????
+		    // WRITING BEGINS
+			/*fp = fopen(argv[4], "w");	// open the file to write to
 
 			write_p3(fp, head, atoi(argv[1]), atoi(argv[2]));
 

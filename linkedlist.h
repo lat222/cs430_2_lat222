@@ -7,7 +7,7 @@
 typedef struct pixel {
 
 	// The is where the colors for a pixel are stored
-    int R, G, B;
+    float R, G, B;
 
 } pixel;
 

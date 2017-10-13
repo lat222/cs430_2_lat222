@@ -73,7 +73,15 @@ node* raycast(FILE* fp, int width, int height)
 			float pz = -1; // z coord is on screen TODO: Is this right?
 			vector* ur = make_unit_vector(px,py,pz); // unit ray vector
 			objectNode* x = shoot(ur, headObject); // return position of first hit
-			insert_node(make_node(shade(x)),headPixel);	// pixel colored by object hit; TODO: fix what make_node takes in
+			/*if(x == NULL)
+			{
+				printf("X hits nothing");
+			}
+			else
+			{
+				printf("%d",(x->radius));
+			}*/
+			//insert_node(make_node(shade(x)),headPixel);	// pixel colored by object hit; TODO: fix what make_node takes in
 			columnCounter++;
 		}
 
@@ -222,10 +230,72 @@ vector* make_unit_vector(float x, float y, float z)
 
 objectNode* shoot(vector* rayVector, objectNode* head)
 {
-	return head;
+	objectNode* hitObject;
+	objectNode* current = head;
+	float t = -1; // no intersection so far
+	while(current != NULL)
+	{
+		float result;
+		// check if the object intersects with the vector
+		if(current->type == 's')
+		{
+			result = ray_sphere_intersection(rayVector,current);
+		}
+		else
+		{
+			result = ray_plane_intersection(rayVector,current);
+		}
+
+		if(result > 0 && result < abs(t))
+		{
+			t = result;
+			hitObject = current;
+		}
+		current = current->next;
+	}
+	return hitObject;
 }
 
 pixel* shade(objectNode* hitObject)
 {
+	if(hitObject == NULL)
+	{
+		// return a black pixel, which is the background color
+		pixel* backgroundColor = (pixel*) malloc(sizeof(pixel));
+		backgroundColor->R = 0;
+		backgroundColor->G = 0;
+		backgroundColor->B = 0;
+		return backgroundColor;
+	}
+	// return a pixel based off of the shade of the object
 	return hitObject->pix;
+}
+
+float ray_sphere_intersection(vector* rayVector, objectNode* oNode)
+{
+	float dx = rayVector->x;
+	float dy = rayVector->y;
+	float dz = rayVector->z;
+	float cx = oNode->position->x;
+	float cy = oNode->position->y;
+	float cz = oNode->position->z;
+	int r = oNode->radius;
+	float a = powf(dx,2)+powf(dy,2)+powf(dz,2);
+	float b = 2*dx*(0-cx)+2*dy*(0-cy)+2*dz*(0-cz);
+	float c = powf(cx,2)+powf(cy,2)+powf(cz,2)-powf(r,2);
+	float discriminant = powf(b,2)-4*a*c;
+	if(discriminant>=0)
+	{
+		return (-b-powf(discriminant,0.5))/(2*a);
+	}
+	else
+	{
+		return -1;
+	}
+	return -1;
+}
+
+float ray_plane_intersection(vector* rayVector, objectNode* oNode)
+{
+	return -1;
 }
