@@ -3,7 +3,7 @@
 node* raycast(FILE* fp, int width, int height)
 {
 	// create the head of the linked list
-	node* headPixel = (node*) malloc(sizeof(node));
+	node* headPixel;
 
 	// Read in the first line of the file and make sure it is a camera type object
 	// variables to store what is read in from input file
@@ -55,7 +55,7 @@ node* raycast(FILE* fp, int width, int height)
 	}
 	readObjectFile(fp,headObject);
 
-
+	int nodesSaved = 0;
 	// Finished reading in file, now is the time to start Raycasting!
 	// M and N are arbitrary amounts of pixels
 	long double pixheight = height / cy; // the height of one pixel
@@ -72,9 +72,17 @@ node* raycast(FILE* fp, int width, int height)
 			float px = 0 - cx / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
 			float pz = -1; // z coord is on screen TODO: Is this right?
 			vector* ur = make_unit_vector(px,py,pz); // unit ray vector
-			pixel* x = shoot(ur, headObject); // return position of first hit
+			node* x = make_node(shoot(ur, headObject)); // return position of first hit
 			//printf("Pixel:  %f, %f, %f\t",x->R,x->G,x->B);
-			//insert_node(make_node(x),headPixel);	// pixel colored by object hit; TODO: fix what make_node takes in
+			if(nodesSaved==0)
+			{
+				headPixel = x;
+				nodesSaved = 1;
+			}
+			else
+			{
+				insert_node(x,headPixel);	// pixel colored by object hit; TODO: fix what make_node takes in
+			}
 			columnCounter++;
 		}
 
@@ -303,5 +311,24 @@ float ray_sphere_intersection(vector* rayVector, objectNode* oNode)
 
 float ray_plane_intersection(vector* rayVector, objectNode* oNode)
 {
-	return -1;
+	float num = dot_product(oNode->normal,oNode->position);
+	float den = dot_product(oNode->normal, rayVector);
+	float t = num/den;
+	if(t>0 && t<1)
+	{
+		return t;
+	}
+	else
+	{
+		return INFINITY;
+	}
+}
+
+float dot_product(vector* v, vector* u)
+{
+    float result = 0.0;
+    result += v->x*u->x;
+    result += v->y*u->y;
+    result += v->z*u->z;
+    return result;
 }

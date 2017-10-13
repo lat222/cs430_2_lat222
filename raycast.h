@@ -34,6 +34,7 @@ pixel* shoot(vector* rayVector, objectNode* head);
 pixel* shade(objectNode* hitOject);
 float ray_sphere_intersection(vector* rayVector, objectNode* oNode);
 float ray_plane_intersection(vector* rayVector, objectNode* oNode);
+float dot_product(vector* v, vector* u);
 
 
 
