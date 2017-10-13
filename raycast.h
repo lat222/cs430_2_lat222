@@ -31,7 +31,6 @@ void readObjectFile(FILE* fp, objectNode* head);
 objectNode* readObject(char* line);
 vector* make_unit_vector(float x, float y, float z);
 pixel* shoot(vector* rayVector, objectNode* head);
-pixel* shade(objectNode* hitOject);
 float ray_sphere_intersection(vector* rayVector, objectNode* oNode);
 float ray_plane_intersection(vector* rayVector, objectNode* oNode);
 float dot_product(vector* v, vector* u);
