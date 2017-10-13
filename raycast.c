@@ -301,12 +301,7 @@ float ray_sphere_intersection(vector* rayVector, objectNode* oNode)
 	// if the discriminant is greater than 0, there was an intersection
 	if(discriminant>=0)
 	{
-		double t0 = -b-powf(discriminant,0.5)/(2*a);
-		double t1 = -b+powf(discriminant,0.5)/(2*a);
-		// we only want positive distances
-		if(t0 > 0) return t0;
-		else if (t1 > 0) return t1;
-		else return INFINITY;
+		return -b-powf(discriminant,0.5)/(2*a);
 	}
 	else
 	{
@@ -320,7 +315,7 @@ float ray_plane_intersection(vector* rayVector, objectNode* oNode)
 	float num = dot_product(oNode->normal,oNode->position);
 	float den = dot_product(oNode->normal, rayVector);
 	float t = num/den;
-	if(t>0 && t<1)
+	if(t>0)
 	{
 		return t;
 	}
