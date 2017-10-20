@@ -1,6 +1,8 @@
 #include "raycast.h"
 
-
+int PROPERTY_COLOR = 2;
+int PROPERTY_POSITION = 3;
+int PROPERTY_NORMAL = 4;
 
 node* raycast(FILE* fp, int width, int height)
 {
@@ -19,7 +21,7 @@ node* raycast(FILE* fp, int width, int height)
 	if((read = getline(&line, &len, fp)) != -1)
 	{
 		int object_read_in = 0;
-		char* token = strtok(remove_spaces(read),",");	// this string will be chopped up to get the important information about camera
+		char* token = strtok(remove_spaces(line),",");	// this string will be chopped up to get the important information about camera
 		while(token != NULL)
 		{
 			if(strcmp(token,"camera") == 0 && object_read_in == 0)	// check that camera is the object for this line
@@ -44,14 +46,13 @@ node* raycast(FILE* fp, int width, int height)
 			}
 			else
 			{
-				fprintf(stderr, "ERROR: First object in input file was %s-- SHOULD BE \'camera\'",cut_string_at_char(current,','));
+				fprintf(stderr, "ERROR: First object in input file was %s-- SHOULD BE \'camera\'",token);
 				exit(0);
 			}
 			token = strtok(NULL, ","); // continue breaking up the read in line by commas
 
 		}
 		free(token);
-		free(read);
 	}
 
 
@@ -61,11 +62,19 @@ node* raycast(FILE* fp, int width, int height)
 	{
 		headObject = readObject(line);
 	}
-	free(read);
 	if(headObject != NULL)
 	{
 		// then read in and store all of the following objects
 		readObjectFile(fp,headObject);
+	}
+
+	objectNode* current = headObject;
+	while(current != NULL)
+	{
+		if(current->type == 's') 
+			printf("sphere, [%f,%f,%f], [%f,%f,%f], %d\n", current->pix[0],current->pix[1],current->pix[2],current->position[0],current->position[1],current->position[2],current->radius);
+		else
+			printf("plane, [%f,%f,%f], [%f,%f,%f], [%f,%f,%f]\n", current->pix[0],current->pix[1],current->pix[2],current->position[0],current->position[1],current->position[2],current->normal[0],current->normal[1],current->normal[2]);
 	}
 
 	/*
@@ -105,9 +114,9 @@ node* raycast(FILE* fp, int width, int height)
 		}
 
 		rowCounter++;
-    }
+    }*/
 
-	return headPixel;*/
+	return headPixel;
 }
 
 void readObjectFile(FILE* fp, objectNode* head){
@@ -124,7 +133,6 @@ void readObjectFile(FILE* fp, objectNode* head){
 		current = current->next;
 		current->next = NULL;
 	}
-	free(line);
 }
 
 
@@ -154,21 +162,23 @@ objectNode* readObject(char* line)
 		{
 			if(strncmp(token,"color:",6) == 0)
 			{
-				char* value = get_string_after_char(token,":");
-				newObject->pix[0] = atof(get_first_vector_value(value));
+				char* value = get_string_after_char(token,':');
+				newObject->pix = malloc(sizeof(double) * 3);
+				newObject->pix[0] = get_first_vector_value(value);
 				vectorItemsStored = 1;
 				object_read_in = PROPERTY_COLOR;
 			}
 			else if(strncmp(token,"position:",9) == 0)
 			{
-				char* value = get_string_after_char(token,":");
-				newObject->position[0] = atof(get_first_vector_value(value));
+				char* value = get_string_after_char(token,':');
+				newObject->position = malloc(sizeof(double) * 3);
+				newObject->position[0] = get_first_vector_value(value);
 				vectorItemsStored = 1;
 				object_read_in = PROPERTY_POSITION;
 			}
 			else if(newObject->type == 's' && strncmp(token,"radius:",7) == 0)
 			{
-				char* value = get_string_after_char(token,":");
+				char* value = get_string_after_char(token,':');
 				if(strcmp(value,"0") != 0 && atoi(value) > 0)
 				{
 					newObject->radius = atoi(value);
@@ -180,8 +190,9 @@ objectNode* readObject(char* line)
 			}
 			else if(newObject->type == 'p' && strncmp(token,"normal:",7) == 0)
 			{
-				char* value = get_string_after_char(token,":");
-				newObject->normal[0] = atof(get_first_vector_value(value));
+				char* value = get_string_after_char(token,':');
+				newObject->normal = malloc(sizeof(double) * 3);
+				newObject->normal[0] = get_first_vector_value(value);
 				vectorItemsStored = 1;
 				object_read_in = PROPERTY_NORMAL;
 			}
@@ -190,21 +201,21 @@ objectNode* readObject(char* line)
 			{
 				if(object_read_in == PROPERTY_COLOR)
 				{
-					if(strcmp(value,"0") == 0 || atof(token) > 0)
+					if(strcmp(token,"0") == 0 || atof(token) > 0)
 					{
 						newObject->pix[1] = atof(token);
 					}
 				}
 				else if(object_read_in == PROPERTY_POSITION)
 				{
-					if(strcmp(value,"0") == 0 || atof(token) > 0)
+					if(strcmp(token,"0") == 0 || atof(token) > 0)
 					{
 						newObject->position[1] = atof(token);
 					}
 				}
 				else if(object_read_in == PROPERTY_NORMAL)
 				{
-					if(strcmp(value,"0") == 0 || atof(token) > 0)
+					if(strcmp(token,"0") == 0 || atof(token) > 0)
 					{
 						newObject->normal[1] = atof(token);
 					}
@@ -220,15 +231,15 @@ objectNode* readObject(char* line)
 			{
 				if(object_read_in == PROPERTY_COLOR)
 				{
-					newObject->pix[2] = atof(get_last_vector_value(token));
+					newObject->pix[2] = get_last_vector_value(token);
 				}
 				else if(object_read_in == PROPERTY_POSITION)
 				{
-					newObject->position[2] = atof(get_last_vector_value(token));
+					newObject->position[2] = get_last_vector_value(token);
 				}
 				else if(object_read_in == PROPERTY_NORMAL)
 				{
-					newObject->normal[2] = atof(get_last_vector_value(token));
+					newObject->normal[2] = get_last_vector_value(token);
 				}
 				else
 				{
@@ -256,7 +267,7 @@ objectNode* readObject(char* line)
 }
 
 // creates a unit vector
-vector* make_unit_vector(float x, float y, float z)
+/*vector* make_unit_vector(float x, float y, float z)
 {
 	float length = powf((powf(x,2.0)+powf(y,2.0)+powf(z,2.0)),0.5);
 	vector* unit_vector = (vector*) malloc(sizeof(vector));
@@ -360,34 +371,34 @@ float dot_product(vector* v, vector* u)
     result += v->y*u->y;
     result += v->z*u->z;
     return result;
-}
+}*/
 
-int get_first_vector_value(char* line)
+double get_first_vector_value(char* line)
 {
 	// check to make sure that the '[' char is in the line
 	if(line[0]=='[')
 	{
 		char* value = get_string_after_char(line,'[');
 		// the string value should just be an int. If it is "0", that works. If the atoi of it is greater than 0, it is not a string and it is not negative
-		if(strcmp(value,"0") == 0 || atoi(value) > 0)
+		if(strcmp(value,"0") == 0 || atof(value) > 0)
 		{
-			return(atoi(value));
+			return(atof(value));
 		}
 	}
 	fprintf(stderr, "ERROR: Values for Color,Position, and Normal properties must be in brackets and positive numbers\n");
 	exit(0);
 }
 
-int get_last_vector_value(char* line)
+double get_last_vector_value(char* line)
 {
 	// check to make sure that the '[' char is in the line
 	if(line[strlen(line)-1]==']')
 	{
 		char* value = cut_string_at_char(line,']');
 		// the string value should just be an int. If it is "0", that works. If the atoi of it is greater than 0, it is not a string and it is not negative
-		if(strcmp(value,"0") == 0 || atoi(value) > 0)
+		if(strcmp(value,"0") == 0 || atof(value) > 0)
 		{
-			return(atoi(value));
+			return(atof(value));
 		}
 	}
 	fprintf(stderr, "ERROR: Values for Color,Position, and Normal properties must be in brackets and positive numbers\n");

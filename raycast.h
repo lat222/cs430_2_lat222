@@ -8,10 +8,6 @@
 #include "linkedlist.h"
 #include "helperfuncs.h"
 
-int PROPERTY_COLOR = 2;
-int PROPERTY_POSITION = 3;
-int PROPERTY_NORMAL = 4;
-
 typedef double* V3;
 
 // class to hold object information
@@ -34,13 +30,16 @@ void readObjectFile(FILE* fp, objectNode* head);
 // creates an object based off of a line in the input file
 objectNode* readObject(char* line);
 // makes a unit vector from args x, y, and z
-vector* make_unit_vector(float x, float y, float z);
+/*vector* make_unit_vector(float x, float y, float z);
 // returns the pixel struct of the nearest hit object
 pixel* shoot(vector* rayVector, objectNode* head);
 // returns the distance t if the ray vector intersected with the object
 float ray_sphere_intersection(vector* rayVector, objectNode* oNode);
 float ray_plane_intersection(vector* rayVector, objectNode* oNode);
 // returns a dot product
-float dot_product(vector* v, vector* u);
+float dot_product(vector* v, vector* u);*/
+double get_first_vector_value(char* line);
+
+double get_last_vector_value(char* line);
 
 #endif
