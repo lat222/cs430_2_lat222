@@ -8,20 +8,20 @@
 #include "linkedlist.h"
 #include "helperfuncs.h"
 
-// class to hold a vector
-typedef struct vector
-{
-	float x,y,z;
-} vector;
+int PROPERTY_COLOR = 2;
+int PROPERTY_POSITION = 3;
+int PROPERTY_NORMAL = 4;
+
+typedef double* V3;
 
 // class to hold object information
 typedef struct objectNode
 {
 	char type;
-	pixel* pix;
-	vector* position;
+	V3 pix;
+	V3 position;
 	int radius;
-	vector* normal;
+	V3 normal;
 
 	struct objectNode* next;
 

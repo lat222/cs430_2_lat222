@@ -1,5 +1,7 @@
 #include "raycast.h"
 
+
+
 node* raycast(FILE* fp, int width, int height)
 {
 	// create the head of the linked list
@@ -16,37 +18,40 @@ node* raycast(FILE* fp, int width, int height)
 	// read in the camera line; assumes camera is the first object in the input file
 	if((read = getline(&line, &len, fp)) != -1)
 	{
-		char* current = malloc(strlen(line) + 1);	// this string will be chopped up to get the important information about camera
-		strcpy(current,line);
-		if(strcmp(cut_string_at_char(current,','),"camera") == 0)	// check that camera is the object for this line
+		int object_read_in = 0;
+		char* token = strtok(remove_spaces(read),",");	// this string will be chopped up to get the important information about camera
+		while(token != NULL)
 		{
-			current = get_string_after_char(current,' ');	// get to the next property
-			if(strcmp(cut_string_at_char(current,':'),"width") == 0)	// check that width is the next property for camera
+			if(strcmp(token,"camera") == 0 && object_read_in == 0)	// check that camera is the object for this line
 			{
-				cx = atof(cut_string_at_char(get_string_after_char(current,' '),','));	// store the width
-
-				current = get_string_after_char(get_string_after_char(current,','),' ');	// get to the next property
-				if(strcmp(cut_string_at_char(current,':'),"height") == 0)	// check the next property is height
+				object_read_in = 1;
+			}
+			else if(object_read_in != 0)
+			{
+				if(strncmp(token,"width:",5) == 0)	// check if width is the next property for camera
 				{
-					cy = atof(get_string_after_char(current,' '));	// store the height
+					cx = atof(cut_string_after_char(token,':'));	// store the width	
 				}
-				else{
-					fprintf(stderr, "Camera properties are incorrect\n");
+				else if(strncmp(token,"height:",7) == 0)	// check if the next property is height
+				{
+					cy = atof(get_string_after_char(token,':'));	// store the height
+				}
+				else
+				{
+					fprintf(stderr, "ERROR: Camera properties are incorrect in token: %s\n",token);
 					exit(0);
 				}
 			}
 			else
 			{
-				fprintf(stderr, "Camera properties are incorrect\n");
+				fprintf(stderr, "ERROR: First object in input file was %s-- SHOULD BE \'camera\'",cut_string_at_char(current,','));
 				exit(0);
 			}
+			token = strtok(NULL, ","); // continue breaking up the read in line by commas
+
 		}
-		else
-		{
-			fprintf(stderr, "First object in input file was %s-- SHOULD BE \'camera\'",cut_string_at_char(current,','));
-			exit(0);
-		}
-		free(current);
+		free(token);
+		free(read);
 	}
 
 
@@ -56,10 +61,14 @@ node* raycast(FILE* fp, int width, int height)
 	{
 		headObject = readObject(line);
 	}
-	// then read in and store all of the following objects
-	readObjectFile(fp,headObject);
+	free(read);
+	if(headObject != NULL)
+	{
+		// then read in and store all of the following objects
+		readObjectFile(fp,headObject);
+	}
 
-
+	/*
 	// Finished reading in file, now is the time to start Raycasting!
 
 	// create a var to tell what pixels we have stored already
@@ -98,7 +107,7 @@ node* raycast(FILE* fp, int width, int height)
 		rowCounter++;
     }
 
-	return headPixel;
+	return headPixel;*/
 }
 
 void readObjectFile(FILE* fp, objectNode* head){
@@ -124,106 +133,124 @@ objectNode* readObject(char* line)
 	// reads in an object (sphere or plane ONLY) and assumes that all objects are written in with properties in the exact order as given in the 
 	// example for the JSON file for the lab
 	objectNode* newObject = (objectNode*) malloc(sizeof(objectNode));
-	char* current = line;	
-	if(strcmp(cut_string_at_char(current,','),"sphere") == 0)
+	int object_read_in = 0;
+
+	int vectorItemsStored = 0;
+
+	char* token = strtok(remove_spaces(line),",");
+	while(token != NULL)
 	{
-		newObject->type = 's';
-		current = get_string_after_char(current,' ');
-		if(strcmp(cut_string_at_char(current,':'),"color") == 0)
+		if(strcmp(token,"sphere") == 0 && object_read_in == 0)
 		{
-			pixel* pix = (pixel*) malloc(sizeof(pixel));
-			pix->R = atof(cut_string_at_char(get_string_after_char(current,'['),','));
-			pix->G = atof(cut_string_at_char(get_string_after_char(current,','),','));
-			pix->B = atof(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-			newObject->pix = pix;
-
-			current = get_string_after_char(get_string_after_char(current,']'),' ');
-			if(strcmp(cut_string_at_char(current,':'),"position") == 0)
+			newObject->type = 's';
+			object_read_in = 1;
+		}
+		else if(strcmp(token,"plane") == 0 && object_read_in == 0)
+		{
+			newObject->type = 'p';
+			object_read_in = 1;	
+		}
+		else if(object_read_in != 0)
+		{
+			if(strncmp(token,"color:",6) == 0)
 			{
-				vector* position = (vector*) malloc(sizeof(vector));
-				position->x = atoi(cut_string_at_char(get_string_after_char(current,'['),','));
-				position->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
-				position->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-				newObject->position = position;
-
-				current = get_string_after_char(get_string_after_char(current,']'),' ');
-				if(strcmp(cut_string_at_char(current,':'),"radius") == 0)
+				char* value = get_string_after_char(token,":");
+				newObject->pix[0] = atof(get_first_vector_value(value));
+				vectorItemsStored = 1;
+				object_read_in = PROPERTY_COLOR;
+			}
+			else if(strncmp(token,"position:",9) == 0)
+			{
+				char* value = get_string_after_char(token,":");
+				newObject->position[0] = atof(get_first_vector_value(value));
+				vectorItemsStored = 1;
+				object_read_in = PROPERTY_POSITION;
+			}
+			else if(newObject->type == 's' && strncmp(token,"radius:",7) == 0)
+			{
+				char* value = get_string_after_char(token,":");
+				if(strcmp(value,"0") != 0 && atoi(value) > 0)
 				{
-					newObject->radius = atoi(get_string_after_char(current,' '));
+					newObject->radius = atoi(value);
 				}
 				else
 				{
-					fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
+					fprintf(stderr, "ERROR: Radius value must be a number greater than 0 -- NOT %s\n", value);
+				}
+			}
+			else if(newObject->type == 'p' && strncmp(token,"normal:",7) == 0)
+			{
+				char* value = get_string_after_char(token,":");
+				newObject->normal[0] = atof(get_first_vector_value(value));
+				vectorItemsStored = 1;
+				object_read_in = PROPERTY_NORMAL;
+			}
+			// TODO: vectors will be split into tokens as well-- how to handle????
+			else if(vectorItemsStored == 1)
+			{
+				if(object_read_in == PROPERTY_COLOR)
+				{
+					if(strcmp(value,"0") == 0 || atof(token) > 0)
+					{
+						newObject->pix[1] = atof(token);
+					}
+				}
+				else if(object_read_in == PROPERTY_POSITION)
+				{
+					if(strcmp(value,"0") == 0 || atof(token) > 0)
+					{
+						newObject->position[1] = atof(token);
+					}
+				}
+				else if(object_read_in == PROPERTY_NORMAL)
+				{
+					if(strcmp(value,"0") == 0 || atof(token) > 0)
+					{
+						newObject->normal[1] = atof(token);
+					}
+				}
+				else
+				{
+					fprintf(stderr,"ERROR: Cannot store 2nd vector number\n");
 					exit(0);
 				}
+				vectorItemsStored = 2;
+			}
+			else if (vectorItemsStored == 2)
+			{
+				if(object_read_in == PROPERTY_COLOR)
+				{
+					newObject->pix[2] = atof(get_last_vector_value(token));
+				}
+				else if(object_read_in == PROPERTY_POSITION)
+				{
+					newObject->position[2] = atof(get_last_vector_value(token));
+				}
+				else if(object_read_in == PROPERTY_NORMAL)
+				{
+					newObject->normal[2] = atof(get_last_vector_value(token));
+				}
+				else
+				{
+					fprintf(stderr,"ERROR: Cannot store 3rd vector number\n");
+					exit(0);
+				}
+				vectorItemsStored = 0;
 			}
 			else
 			{
-				fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
+				fprintf(stderr, "ERROR: Property is invalid in token: %s\n", token);
 				exit(0);
 			}
 		}
 		else
 		{
-			fprintf(stderr, "Sphere property %s is incorrect.\n", cut_string_at_char(current,':'));
+			fprintf(stderr, "ERROR: Object %s in input file was not type sphere or plane", token);
 			exit(0);
 		}
+		strtok(NULL,",");
 	}
-	else if(strcmp(cut_string_at_char(current,','),"plane") == 0)
-	{
-		newObject->type = 'p';
-		current = get_string_after_char(current,' ');
-		if(strcmp(cut_string_at_char(current,':'),"color") == 0)
-		{
-			pixel* pix = (pixel*) malloc(sizeof(pixel));
-			pix->R = atof(cut_string_at_char(get_string_after_char(current,'['),','));
-			pix->G = atof(cut_string_at_char(get_string_after_char(current,','),','));
-			pix->B = atof(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-			newObject->pix = pix;
-
-			current = get_string_after_char(get_string_after_char(current,']'),' ');
-			if(strcmp(cut_string_at_char(current,':'),"position") == 0)
-			{
-				vector* position = (vector*) malloc(sizeof(vector));
-				position->x = atoi(cut_string_at_char(get_string_after_char(current,'['),','));
-				position->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
-				position->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-				newObject->position = position;
-
-				current = get_string_after_char(get_string_after_char(current,']'),' ');
-				if(strcmp(cut_string_at_char(current,':'),"normal") == 0)
-				{
-					vector* normal = (vector*) malloc(sizeof(vector));
-					normal->x = atoi(cut_string_at_char(get_string_after_char(current,'['),','));
-					normal->y = atoi(cut_string_at_char(get_string_after_char(current,','),','));
-					normal->z = atoi(cut_string_at_char(get_string_after_char(get_string_after_char(current,','),','),']'));
-					newObject->normal = normal;
-				}
-				else
-				{
-					fprintf(stderr, "Plane property %s is incorrect.\n", cut_string_at_char(current,':'));
-					exit(0);
-				}
-			}
-			else
-			{
-				fprintf(stderr, "Plane property %s is incorrect.\n", cut_string_at_char(current,':'));
-				exit(0);
-			}
-		}
-		else
-		{
-			fprintf(stderr, "Plane property %s is incorrect.\n", cut_string_at_char(current,':'));
-			exit(0);
-		}		
-	}
-	else
-	{
-		fprintf(stderr, "Object %s in input file was not type sphere or plane", cut_string_at_char(current,','));
-		exit(0);
-	}
-
-	free(current);
+	free(token);
 
 	return newObject;
 }
@@ -333,4 +360,36 @@ float dot_product(vector* v, vector* u)
     result += v->y*u->y;
     result += v->z*u->z;
     return result;
+}
+
+int get_first_vector_value(char* line)
+{
+	// check to make sure that the '[' char is in the line
+	if(line[0]=='[')
+	{
+		char* value = get_string_after_char(line,'[');
+		// the string value should just be an int. If it is "0", that works. If the atoi of it is greater than 0, it is not a string and it is not negative
+		if(strcmp(value,"0") == 0 || atoi(value) > 0)
+		{
+			return(atoi(value));
+		}
+	}
+	fprintf(stderr, "ERROR: Values for Color,Position, and Normal properties must be in brackets and positive numbers\n");
+	exit(0);
+}
+
+int get_last_vector_value(char* line)
+{
+	// check to make sure that the '[' char is in the line
+	if(line[strlen(line)-1]==']')
+	{
+		char* value = cut_string_at_char(line,']');
+		// the string value should just be an int. If it is "0", that works. If the atoi of it is greater than 0, it is not a string and it is not negative
+		if(strcmp(value,"0") == 0 || atoi(value) > 0)
+		{
+			return(atoi(value));
+		}
+	}
+	fprintf(stderr, "ERROR: Values for Color,Position, and Normal properties must be in brackets and positive numbers\n");
+	exit(0);
 }
