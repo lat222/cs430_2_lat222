@@ -78,3 +78,19 @@ int count_char_in_string(char* inString, char charToCount)
 	}
 	return instancesOfChar;
 }
+
+char* remove_spaces(char* str_untrimmed)
+{
+  char* str_trimmed = (char*) malloc(sizeof(char)*strlen(str_untrimmed));
+  while (str_untrimmed != '\0')
+  {
+    if(!isspace(*str_untrimmed))
+    {
+      str_trimmed = str_untrimmed;
+      str_trimmed++;
+    }
+    str_untrimmed++;
+  }
+  str_trimmed = '\0';
+  return str_trimmed;
+}
