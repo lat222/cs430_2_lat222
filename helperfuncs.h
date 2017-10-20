@@ -18,4 +18,6 @@ char* get_string_after_char(char* inString, char charToCutOut); // cuts inString
 
 int count_char_in_string(char* inString, char charToCount);
 
+char* remove_spaces(char* str_untrimmed);
+
 #endif
