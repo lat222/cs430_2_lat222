@@ -17,12 +17,12 @@ Pixel* raycast(FILE* fp, int width, int height)
 	// read in the camera line; assumes camera is the first object in the input file
 	if((read = getline(&line, &len, fp)) != -1)
 	{
-		char object_read_in = '';
+		char object_read_in = '\0';
 		char* token = strtok(line," ,:\t");	// this string will be chopped up to get the important information about camera
 		while(token != NULL)
 		{
-			if(strcmp(token,"camera") == 0 && object_read_in == '') object_read_in = 'c';	// check that camera is the object for this line
-			else if(object_read_in != '')
+			if(strcmp(token,"camera") == 0 && object_read_in == '\0') object_read_in = 'c';	// check that camera is the object for this line
+			else if(object_read_in != '\0')
 			{
 				if(strcmp(token,"width") == 0) object_read_in = 'w';	// check if width is the next property for camera
 				else if(strcmp(token,"height") == 0) object_read_in = 'h';	// check if the next property is height
@@ -56,20 +56,20 @@ Pixel* raycast(FILE* fp, int width, int height)
 
 	// Store the first object after camera
 	int objectsAdded = 0;
-	Object* objects = (Object*) malloc(sizeof(Object)*129);
-	char object_read_in = '';
-	char property_read_in = '';
-	int propertiesAdded = 0;
-	int vectorNum;
+	Object* objects = malloc(sizeof(Object)*129);
 	while((read = getline(&line, &len, fp)) != -1)
 	{
+		char object_read_in = '\0';
+		char property_read_in = '\0';
+		int propertiesAdded = 0;
+		int vectorNum;
 		if(objectsAdded != 128)
 		{
 			char* token = strtok(line," ,\t\n:[]");
-			while(token != NULL):
+			while(token != NULL)
 			{
 				// read in an object
-				if(object_read_in == '')
+				if(object_read_in == '\0')
 				{
 					if(strcmp(token,"sphere") == 0)
 					{
@@ -78,7 +78,7 @@ Pixel* raycast(FILE* fp, int width, int height)
 					}
 					else if(strcmp(token,"plane") == 0)
 					{
-						objects[objectsAdded].type = 'p'
+						objects[objectsAdded].type = 'p';
 						object_read_in = 'p';
 					}
 					else
@@ -99,11 +99,11 @@ Pixel* raycast(FILE* fp, int width, int height)
 						property_read_in = 'p';
 						vectorNum = 0;
 					}
-					else if(strcmp(token,"radius") == 0 && object_read_in = 's')
+					else if(strcmp(token,"radius") == 0 && object_read_in == 's')
 					{
 						property_read_in = 'r';
 					}
-					else if(strcmp(token,"normal") == 0 && object_read_in = 'p')
+					else if(strcmp(token,"normal") == 0 && object_read_in == 'p')
 					{
 						property_read_in = 'n';
 						vectorNum = 0;
@@ -118,20 +118,21 @@ Pixel* raycast(FILE* fp, int width, int height)
 						else
 						{
 							// malloc the space to add the pixel if nothing has been stored yet TODO: check if space was malloced???
-							if(vectorNum == 0) objects[objectsAdded].pix = (Pixel*) malloc(sizeof(Pixel));
+							if(vectorNum == 0) objects[objectsAdded]->pix = (Pixel*) malloc(sizeof(Pixel));
 							// check that the value is valid and store it if it is
 							if(strcmp(token,"0") == 0 || atof(token) > 0)
 							{
 								switch(vectorNum)
 								{
-									case 0: objects[objectsAdded].pix.R = atof(token);
-									case 1: objects[objectsAdded].pix.G = atof(token);
-									case 2: objects[objectsAdded].pix.B = atof(token);
+									case 0: objects[objectsAdded]->pix->R = atof(token);
+									case 1: objects[objectsAdded]->pix->G = atof(token);
+									case 2: objects[objectsAdded]->pix->B = atof(token);
 									default:
-										fprintf(stderr, "ERROR: Pixels only have three channels\n".);
+										fprintf(stderr, "ERROR: Pixels only have three channels.\n");
 										exit(0);
 								}
 								vectorNum++;
+							}
 							else
 							{
 								fprintf(stderr, "ERROR: Values for the Color Property must be positive numbers-- NOT %s\n", token);
@@ -198,15 +199,12 @@ Pixel* raycast(FILE* fp, int width, int height)
 				}
 				token = strtok(NULL," ,\t\n:[]");
 			}
+
 			if(propertiesAdded != 3)
 			{
 				fprintf(stderr, "ERROR: Three properties should have been read in -- NOT %d\n", propertiesAdded);
 				exit(0);
 			}
-			//reset all of these values because we are moving to a new line
-			object_read_in = '';
-			property_read_in = '';
-			propertiesAdded = 0;
 			objectsAdded++;
 		}
 		else
@@ -229,7 +227,7 @@ Pixel* raycast(FILE* fp, int width, int height)
 	long double pixheight = height / cy; // the height of one pixel
 	long double pixwidth = width / cx; // the width of one pixel
 
-	for(int rowCounter = 0; i < height; rowCounter++)
+	for(int rowCounter = 0; rowCounter < height; rowCounter++)
 	{ // for each row
 		float py = 0 - cy / 2 + pixheight * (rowCounter + 0.5); // y coord of row
 
@@ -238,11 +236,11 @@ Pixel* raycast(FILE* fp, int width, int height)
 			float px = 0 - cx / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
 			float pz = -1; // z coord is on screen TODO: Is this right?
 			V3 ur = v3_unit(px,py,pz); // unit ray vector
-			pixmap[rowCounter*width+column] = shoot(ur, objects,objectsAdded); // return node with the color of what was hit first
+			pixMap[rowCounter*width+columnCounter] = shoot(ur, objects,objectsAdded); // return node with the color of what was hit first
 		}
     }
 
-	return pixmap;
+	return pixMap;
 }
 
 // returns the closest object that intersects with the vector
@@ -274,27 +272,25 @@ Pixel* shoot(V3 rayVector, Object* objects, int objectCount)
 	// return the pix of the intersected object
 	if(hitObjectIndex != -1)
 	{
-		return objects[hitObjectIndex].pix;
+		return objects[hitObjectIndex]->pix;
 	}
-	else // did not intersect anything, so return a background color pixel
-	{
-		// return a black pixel, which is the background color
-		Pixel* backgroundColor = (Pixel*) malloc(sizeof(Pixel));
-		backgroundColor.R = 0;
-		backgroundColor.G = 0;
-		backgroundColor.B = 0;
-		return backgroundColor;
-	}
+	// did not intersect anything, so return a background color pixel
+	// return a black pixel, which is the background color
+	Pixel* backgroundColor = (Pixel*) malloc(sizeof(Pixel));
+	backgroundColor->R = 0;
+	backgroundColor->G = 0;
+	backgroundColor->B = 0;
+	return backgroundColor;
 }
 
 // does the math to calculate a sphere intersection, and if the sphere was intersected then the distance to that sphere
-double ray_sphere_intersection(V3 rayVector, Object object)
+double ray_sphere_intersection(V3 rayVector, Object* obj)
 {
 	double a = v3_dot(rayVector,rayVector);
 	V3 positionScaled = malloc(sizeof(double)*3);
-	v3_scale(positionScaled,object.position,-2);
-	double b = -v3_dot(positionScaled,rayVector);
-	double c = v3_dot(object.position,object.position)-object.radius*object.radius;
+	v3_scale(positionScaled,obj->position,-2);
+	double b = v3_dot(positionScaled,rayVector);
+	double c = v3_dot(obj->position,obj->position)-obj->radius*obj->radius;
 	double discriminant = (b*b)-4*a*c;
 
 	// if the discriminant is greater than 0, there was an intersection
@@ -309,10 +305,10 @@ double ray_sphere_intersection(V3 rayVector, Object object)
 }
 
 // does the math for a plane intersection and returns the distance to the plane if the intersection happened
-double ray_plane_intersection(V3 rayVector, Object* object)
+double ray_plane_intersection(V3 rayVector, Object* obj)
 {
-	float num = v3_dot(object.normal,object.position);
-	float den = v3_dot(object.normal, rayVector);
+	float num = v3_dot(obj->normal,obj->position);
+	float den = v3_dot(obj->normal, rayVector);
 	float t = num/den;
 	if(t>0)
 	{

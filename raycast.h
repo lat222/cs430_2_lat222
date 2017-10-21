@@ -1,6 +1,7 @@
 #ifndef RAYCAST
 #define RAYCAST
 
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -19,9 +20,9 @@ typedef struct Object
 {
 	char type;
 	Pixel* pix;
-	V3* position;
+	V3 position;
 	int radius;
-	V3* normal;
+	V3 normal;
 
 } Object;
 
@@ -29,9 +30,9 @@ typedef struct Object
 Pixel* raycast(FILE* fp, int width, int height);
 
 // returns the pixel struct of the nearest hit object
-Pixel* shoot(V3* rayVector, Object* objects, int objectCount);
+Pixel* shoot(V3 rayVector, Object* objects, int objectCount);
 // returns the distance t if the ray vector intersected with the object
-double ray_sphere_intersection(V3* rayVector, Object* object);
+double ray_sphere_intersection(V3 rayVector, Object* object);
 double ray_plane_intersection(V3 rayVector, Object* object);
 
 int check_file_path(char* fp);
