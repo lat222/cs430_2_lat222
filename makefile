@@ -12,8 +12,10 @@ mainprog.o : mainprog.c ppmformatter.h raycast.h
 ppmformatter.o : ppmformatter.c ppmformatter.h raycast.h
 	$(CC) $(CFLAGS) ppmformatter.c
 
-raycast.o: raycast.c raycast.h 3DMath.h
+raycast.o: raycast.c raycast.h math3D.h
 	$(CC) $(CFLAGS) raycast.c
+
+
 
 
 clean:
