@@ -6,12 +6,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "math3D.h"
-
 #define maxObjects 128
 #define backgroundColorR 0
 #define backgroundColorG 0
 #define backgroundColorB 0
+
+typedef double* V3;
 
 typedef struct Pixel {
 
@@ -45,5 +45,10 @@ double ray_sphere_intersection(V3 rayVector, Object* object);
 double ray_plane_intersection(V3 rayVector, Object* object);
 
 int check_file_path(char* fp);
+
+void v3_scale(V3 c, V3 a, double b);
+double v3_dot(V3 a, V3 b);
+V3 v3_assign(double a, double b, double c);
+V3 v3_unit(double a, double b, double c);
 
 #endif
