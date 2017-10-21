@@ -1,7 +1,5 @@
-#include "linkedlist.h"
 #include "ppmformatter.h"
 #include "raycast.h"
-#include "helperfuncs.h"
 
 int main(int argc, char* argv[]) 
 {
@@ -18,16 +16,15 @@ int main(int argc, char* argv[])
 		{
 			// create the file pointer and open the input file for reading
 			FILE* fp= fopen(argv[3], "r");
-			if((strcmp(argv[1],"0") != 0 && atoi(argv[1]) > 0) &&
-				(strcmp(argv[2],"0") != 0 && atoi(argv[2]) > 0))
+			if(atoi(argv[1]) > 0 && atoi(argv[2]) > 0)
 			{
-				node* head  = raycast(fp,atoi(argv[1]),atoi(argv[2]));
+				Pixel* pixMap  = raycast(fp,atoi(argv[1]),atoi(argv[2]));
 			    fclose(fp);		// done with the input file so close it
 				
 			    // WRITING BEGINS
-				fp = fopen(argv[4], "w");	// open the file to write to
+				fp = fopen(argv[4], "w");	// open the file to write to TODO: check if file opened
 
-				write_p3(fp, head, atoi(argv[1]), atoi(argv[2]));
+				write_p3(fp, pixMap, atoi(argv[1]), atoi(argv[2]));
 
 				fclose(fp);		// done with the output file so close it
 			}

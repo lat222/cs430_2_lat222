@@ -3,23 +3,17 @@ DEBUG = -g
 CFLAGS = -Wall -std=c99 -c
 LFLAGS = -Wall -std=c99
 
-raycast : mainprog.o ppmformatter.o raycast.o linkedlist.o helperfuncs.o
-	$(CC) $(LFLAGS) mainprog.o ppmformatter.o raycast.o linkedlist.o helperfuncs.o -o raycast
+raycast : mainprog.o ppmformatter.o raycast.o
+	$(CC) $(LFLAGS) mainprog.o ppmformatter.o raycast.o -o raycast
 
-mainprog.o : mainprog.c ppmformatter.h raycast.h linkedlist.h helperfuncs.h
+mainprog.o : mainprog.c ppmformatter.h raycast.h
 	$(CC) $(CFLAGS) mainprog.c
 
-ppmformatter.o : ppmformatter.c ppmformatter.h linkedlist.h
+ppmformatter.o : ppmformatter.c ppmformatter.h raycast.h
 	$(CC) $(CFLAGS) ppmformatter.c
 
-raycast.o: raycast.c raycast.h linkedlist.h helperfuncs.h
+raycast.o: raycast.c raycast.h 3DMath.h
 	$(CC) $(CFLAGS) raycast.c
-
-linkedlist.o : linkedlist.c linkedlist.h
-	$(CC) $(CFLAGS) linkedlist.c
-
-helperfuncs.o : helperfuncs.c helperfuncs.h
-	$(CC) $(CFLAGS) helperfuncs.c
 
 
 clean:

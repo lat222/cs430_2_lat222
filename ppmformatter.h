@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "linkedlist.h"
+#include "raycast.h"
 
-void write_p3(FILE* fp, node* head, int width, int height);
+void write_p3(FILE* fp, Pixel* pixel, int width, int height);
 
 
 #endif

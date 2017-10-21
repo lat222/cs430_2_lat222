@@ -4,11 +4,8 @@ int PROPERTY_COLOR = 2;
 int PROPERTY_POSITION = 3;
 int PROPERTY_NORMAL = 4;
 
-node* raycast(FILE* fp, int width, int height)
+Pixel* raycast(FILE* fp, int width, int height)
 {
-	// create the head of the linked list
-	node* headPixel;
-
 	// Read in the first line of the file and make sure it is a camera type object
 	// variables to store what is read in from input file
     char* line = NULL;
@@ -20,23 +17,24 @@ node* raycast(FILE* fp, int width, int height)
 	// read in the camera line; assumes camera is the first object in the input file
 	if((read = getline(&line, &len, fp)) != -1)
 	{
-		int object_read_in = 0;
-		char* token = strtok(remove_spaces(line),",");	// this string will be chopped up to get the important information about camera
+		char object_read_in = '';
+		char* token = strtok(line," ,:\t");	// this string will be chopped up to get the important information about camera
 		while(token != NULL)
 		{
-			if(strcmp(token,"camera") == 0 && object_read_in == 0)	// check that camera is the object for this line
+			if(strcmp(token,"camera") == 0 && object_read_in == '') object_read_in = 'c';	// check that camera is the object for this line
+			else if(object_read_in != '')
 			{
-				object_read_in = 1;
-			}
-			else if(object_read_in != 0)
-			{
-				if(strncmp(token,"width:",5) == 0)	// check if width is the next property for camera
+				if(strcmp(token,"width") == 0) object_read_in = 'w';	// check if width is the next property for camera
+				else if(strcmp(token,"height") == 0) object_read_in = 'h';	// check if the next property is height
+				else if(strcmp(token,"0") == 0 || atof(token) > 0)
 				{
-					cx = atof(cut_string_after_char(token,':'));	// store the width	
-				}
-				else if(strncmp(token,"height:",7) == 0)	// check if the next property is height
-				{
-					cy = atof(get_string_after_char(token,':'));	// store the height
+					if(object_read_in == 'w') cx = atof(token);
+					else if(object_read_in == 'h') cy = atof(token);
+					else
+					{
+						fprintf(stderr, "ERROR: Camera property values must be numbers greater than 0\n");
+						exit(0);
+					}
 				}
 				else
 				{
@@ -49,7 +47,7 @@ node* raycast(FILE* fp, int width, int height)
 				fprintf(stderr, "ERROR: First object in input file was %s-- SHOULD BE \'camera\'",token);
 				exit(0);
 			}
-			token = strtok(NULL, ","); // continue breaking up the read in line by commas
+			token = strtok(NULL, ",: \t"); // continue breaking up the read in line by commas
 
 		}
 		free(token);
@@ -57,284 +55,247 @@ node* raycast(FILE* fp, int width, int height)
 
 
 	// Store the first object after camera
-	objectNode* headObject;
-	if((read = getline(&line, &len, fp)) != -1)
+	int objectsAdded = 0;
+	Object* objects = (Object*) malloc(sizeof(Object)*129);
+	char object_read_in = '';
+	char property_read_in = '';
+	int propertiesAdded = 0;
+	int vectorNum;
+	while((read = getline(&line, &len, fp)) != -1)
 	{
-		headObject = readObject(line);
-	}
-	if(headObject != NULL)
-	{
-		// then read in and store all of the following objects
-		readObjectFile(fp,headObject);
-	}
+		if(objectsAdded != 128)
+		{
+			char* token = strtok(line," ,\t\n:[]");
+			while(token != NULL):
+			{
+				// read in an object
+				if(object_read_in == '')
+				{
+					if(strcmp(token,"sphere") == 0)
+					{
+						objects[objectsAdded].type = 's';
+						object_read_in = 's';
+					}
+					else if(strcmp(token,"plane") == 0)
+					{
+						objects[objectsAdded].type = 'p'
+						object_read_in = 'p';
+					}
+					else
+					{
+						fprintf(stderr, "ERROR: Objects can only be type sphere or plan -- NOT %s\n",token);
+						exit(0);
+					}
+				}
+				else
+				{
+					if(strcmp(token,"color") == 0)
+					{
+						property_read_in = 'c';
+						vectorNum = 0;
+					}
+					else if(strcmp(token,"position") == 0)
+					{
+						property_read_in = 'p';
+						vectorNum = 0;
+					}
+					else if(strcmp(token,"radius") == 0 && object_read_in = 's')
+					{
+						property_read_in = 'r';
+					}
+					else if(strcmp(token,"normal") == 0 && object_read_in = 'p')
+					{
+						property_read_in = 'n';
+						vectorNum = 0;
+					}
+					else if(property_read_in == 'c')
+					{
+						if(vectorNum >= 3)
+						{
+							fprintf(stderr, "ERROR: Pixels can only have 3 channels.\n");
+							exit(0);
+						}
+						else
+						{
+							// malloc the space to add the pixel if nothing has been stored yet TODO: check if space was malloced???
+							if(vectorNum == 0) objects[objectsAdded].pix = (Pixel*) malloc(sizeof(Pixel));
+							// check that the value is valid and store it if it is
+							if(strcmp(token,"0") == 0 || atof(token) > 0)
+							{
+								switch(vectorNum)
+								{
+									case 0: objects[objectsAdded].pix.R = atof(token);
+									case 1: objects[objectsAdded].pix.G = atof(token);
+									case 2: objects[objectsAdded].pix.B = atof(token);
+									default:
+										fprintf(stderr, "ERROR: Pixels only have three channels\n".);
+										exit(0);
+								}
+								vectorNum++;
+							else
+							{
+								fprintf(stderr, "ERROR: Values for the Color Property must be positive numbers-- NOT %s\n", token);
+								exit(0);
+							}
+						}
+					}
+					else if(property_read_in == 'p')
+					{
+						if(vectorNum >= 3)
+						{
+							fprintf(stderr, "ERROR: Position Property can only have 3 coordinates.\n");
+							exit(0);
+						}
+						else
+						{
+							// malloc the space to add the pixel if nothing has been stored yet TODO: check if space was malloced???
+							if(vectorNum == 0) objects[objectsAdded].position = malloc(sizeof(double)*3);
+							// check that the value is valid and store it if it is
+							if(strcmp(token,"0") == 0 || atof(token) != 0) objects[objectsAdded].position[vectorNum++] = atof(token);
+							else
+							{
+								fprintf(stderr, "ERROR: Values for the Position Property must be numbers-- NOT %s\n", token);
+								exit(0);
+							}
+						}
 
-	objectNode* current = headObject;
-	while(current != NULL)
-	{
-		if(current->type == 's') 
-			printf("sphere, [%f,%f,%f], [%f,%f,%f], %d\n", current->pix[0],current->pix[1],current->pix[2],current->position[0],current->position[1],current->position[2],current->radius);
+					}
+					else if(property_read_in == 'n')
+					{
+						if(vectorNum >= 3)
+						{
+							fprintf(stderr, "ERROR: Normal property can only have 3 coordinates.\n");
+							exit(0);
+						}
+						else
+						{
+							// malloc the space to add the pixel if nothing has been stored yet TODO: check if space was malloced???
+							if(vectorNum == 0) objects[objectsAdded].normal = malloc(sizeof(double)*3);
+							// check that the value is valid and store it if it is
+							if(strcmp(token,"0") == 0 || atof(token) != 0) objects[objectsAdded].normal[vectorNum++] = atof(token);
+							else
+							{
+								fprintf(stderr, "ERROR: Values for the Normal Property must be numbers-- NOT %s\n", token);
+								exit(0);
+							}
+						}
+
+					}
+					else if(property_read_in == 'r')
+					{
+						if(strcmp(token,"0") == 0 || atoi(token) > 0) objects[objectsAdded].radius = atoi(token);
+						else
+						{
+							fprintf(stderr, "ERROR: Values for the Radius Property must be positive numbers-- NOT %s\n", token);
+							exit(0);
+						}
+					}
+					else
+					{
+						fprintf(stderr, "ERROR: Invalid value or property -- %s\n", token);
+						exit(0);
+					}
+				}
+				token = strtok(NULL," ,\t\n:[]");
+			}
+			if(propertiesAdded != 3)
+			{
+				fprintf(stderr, "ERROR: Three properties should have been read in -- NOT %d\n", propertiesAdded);
+				exit(0);
+			}
+			//reset all of these values because we are moving to a new line
+			object_read_in = '';
+			property_read_in = '';
+			propertiesAdded = 0;
+			objectsAdded++;
+		}
 		else
-			printf("plane, [%f,%f,%f], [%f,%f,%f], [%f,%f,%f]\n", current->pix[0],current->pix[1],current->pix[2],current->position[0],current->position[1],current->position[2],current->normal[0],current->normal[1],current->normal[2]);
+		{
+			fprintf(stderr, "ERROR: More than 128 objects in input file.\n");
+			exit(0);
+		}
+	}
+	if(objectsAdded == 0)
+	{
+		fprintf(stderr, "ERROR: No objects were read in\n");
+		exit(0);
 	}
 
-	/*
+	
 	// Finished reading in file, now is the time to start Raycasting!
 
-	// create a var to tell what pixels we have stored already
-	int nodesSaved = 0;
+	Pixel* pixMap = malloc(sizeof(Pixel)*width*height);
 
 	long double pixheight = height / cy; // the height of one pixel
 	long double pixwidth = width / cx; // the width of one pixel
 
-	int rowCounter = 0;
-	while(rowCounter < height)
+	for(int rowCounter = 0; i < height; rowCounter++)
 	{ // for each row
 		float py = 0 - cy / 2 + pixheight * (rowCounter + 0.5); // y coord of row
 
-		int columnCounter = 0;
-		while(columnCounter < width)
+		for(int columnCounter = 0; columnCounter < width; columnCounter++)
 		{ // for each column
 			float px = 0 - cx / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
 			float pz = -1; // z coord is on screen TODO: Is this right?
-			vector* ur = make_unit_vector(px,py,pz); // unit ray vector
-			node* x = make_node(shoot(ur, headObject)); // return node with the color of what was hit first
-
-			// storing the node as either the head of the linked list or another node in the linked list
-			if(nodesSaved==0)
-			{
-				headPixel = x;
-				nodesSaved = 1;
-			}
-			else
-			{
-				insert_node(x,headPixel);	// pixel colored by object hit
-			}
-
-			columnCounter++;
+			V3 ur = v3_unit(px,py,pz); // unit ray vector
+			pixmap[rowCounter*width+column] = shoot(ur, objects,objectsAdded); // return node with the color of what was hit first
 		}
+    }
 
-		rowCounter++;
-    }*/
-
-	return headPixel;
-}
-
-void readObjectFile(FILE* fp, objectNode* head){
-	// variables to store what is read in from input file
-    char* line = NULL;
-    size_t len = 0;
-    ssize_t read;
-
-    // ONLY the head node exists when this is called, so just create an object and set that to current's next node
-    objectNode* current = head;
-	while((read = getline(&line, &len, fp)) != -1)
-	{
-		current->next = readObject(line);
-		current = current->next;
-		current->next = NULL;
-	}
-}
-
-
-objectNode* readObject(char* line)
-{
-	// reads in an object (sphere or plane ONLY) and assumes that all objects are written in with properties in the exact order as given in the 
-	// example for the JSON file for the lab
-	objectNode* newObject = (objectNode*) malloc(sizeof(objectNode));
-	int object_read_in = 0;
-
-	int vectorItemsStored = 0;
-
-	char* token = strtok(remove_spaces(line),",");
-	while(token != NULL)
-	{
-		if(strcmp(token,"sphere") == 0 && object_read_in == 0)
-		{
-			newObject->type = 's';
-			object_read_in = 1;
-		}
-		else if(strcmp(token,"plane") == 0 && object_read_in == 0)
-		{
-			newObject->type = 'p';
-			object_read_in = 1;	
-		}
-		else if(object_read_in != 0)
-		{
-			if(strncmp(token,"color:",6) == 0)
-			{
-				char* value = get_string_after_char(token,':');
-				newObject->pix = malloc(sizeof(double) * 3);
-				newObject->pix[0] = get_first_vector_value(value);
-				vectorItemsStored = 1;
-				object_read_in = PROPERTY_COLOR;
-			}
-			else if(strncmp(token,"position:",9) == 0)
-			{
-				char* value = get_string_after_char(token,':');
-				newObject->position = malloc(sizeof(double) * 3);
-				newObject->position[0] = get_first_vector_value(value);
-				vectorItemsStored = 1;
-				object_read_in = PROPERTY_POSITION;
-			}
-			else if(newObject->type == 's' && strncmp(token,"radius:",7) == 0)
-			{
-				char* value = get_string_after_char(token,':');
-				if(strcmp(value,"0") != 0 && atoi(value) > 0)
-				{
-					newObject->radius = atoi(value);
-				}
-				else
-				{
-					fprintf(stderr, "ERROR: Radius value must be a number greater than 0 -- NOT %s\n", value);
-				}
-			}
-			else if(newObject->type == 'p' && strncmp(token,"normal:",7) == 0)
-			{
-				char* value = get_string_after_char(token,':');
-				newObject->normal = malloc(sizeof(double) * 3);
-				newObject->normal[0] = get_first_vector_value(value);
-				vectorItemsStored = 1;
-				object_read_in = PROPERTY_NORMAL;
-			}
-			// TODO: vectors will be split into tokens as well-- how to handle????
-			else if(vectorItemsStored == 1)
-			{
-				if(object_read_in == PROPERTY_COLOR)
-				{
-					if(strcmp(token,"0") == 0 || atof(token) > 0)
-					{
-						newObject->pix[1] = atof(token);
-					}
-				}
-				else if(object_read_in == PROPERTY_POSITION)
-				{
-					if(strcmp(token,"0") == 0 || atof(token) > 0)
-					{
-						newObject->position[1] = atof(token);
-					}
-				}
-				else if(object_read_in == PROPERTY_NORMAL)
-				{
-					if(strcmp(token,"0") == 0 || atof(token) > 0)
-					{
-						newObject->normal[1] = atof(token);
-					}
-				}
-				else
-				{
-					fprintf(stderr,"ERROR: Cannot store 2nd vector number\n");
-					exit(0);
-				}
-				vectorItemsStored = 2;
-			}
-			else if (vectorItemsStored == 2)
-			{
-				if(object_read_in == PROPERTY_COLOR)
-				{
-					newObject->pix[2] = get_last_vector_value(token);
-				}
-				else if(object_read_in == PROPERTY_POSITION)
-				{
-					newObject->position[2] = get_last_vector_value(token);
-				}
-				else if(object_read_in == PROPERTY_NORMAL)
-				{
-					newObject->normal[2] = get_last_vector_value(token);
-				}
-				else
-				{
-					fprintf(stderr,"ERROR: Cannot store 3rd vector number\n");
-					exit(0);
-				}
-				vectorItemsStored = 0;
-			}
-			else
-			{
-				fprintf(stderr, "ERROR: Property is invalid in token: %s\n", token);
-				exit(0);
-			}
-		}
-		else
-		{
-			fprintf(stderr, "ERROR: Object %s in input file was not type sphere or plane", token);
-			exit(0);
-		}
-		strtok(NULL,",");
-	}
-	free(token);
-
-	return newObject;
-}
-
-// creates a unit vector
-/*vector* make_unit_vector(float x, float y, float z)
-{
-	float length = powf((powf(x,2.0)+powf(y,2.0)+powf(z,2.0)),0.5);
-	vector* unit_vector = (vector*) malloc(sizeof(vector));
-	unit_vector->x = x/length;
-	unit_vector->y = y/length;
-	unit_vector->z = z/length;
-	return unit_vector;
+	return pixmap;
 }
 
 // returns the closest object that intersects with the vector
-pixel* shoot(vector* rayVector, objectNode* head)
+Pixel* shoot(V3 rayVector, Object* objects, int objectCount)
 {
-	objectNode* hitObject;
-	objectNode* current = head;
-	float t = INFINITY; // no intersection so far
+	int hitObjectIndex = -1;
+	double t = INFINITY; // no intersection so far
 	// loop through the entire linked list of objects and set t to the closest intersected object
-	while(current != NULL)
+	for(int i = 0; i < objectCount; i++ )
 	{
-		float result;
+		double result;
 		// check if the object intersects with the vector
-		if(current->type == 's')
+		if(objects[i].type == 's')
 		{
-			result = ray_sphere_intersection(rayVector,current);
+			result = ray_sphere_intersection(rayVector,objects[i]);
 		}
 		else
 		{
-			result = ray_plane_intersection(rayVector,current);
+			result = ray_plane_intersection(rayVector,objects[i]);
 		}
 
 		if(result < t)	// this intersection is less than t is already so set t to this result and set hitobject to this object
 		{
 			t = result;
-			hitObject = current;
+			hitObjectIndex = i;
 		}
-		current = current->next;
 	}
 
 	// return the pix of the intersected object
-	if(t != INFINITY)
+	if(hitObjectIndex != -1)
 	{
-		return hitObject->pix;
+		return objects[hitObjectIndex].pix;
 	}
 	else // did not intersect anything, so return a background color pixel
 	{
 		// return a black pixel, which is the background color
-		pixel* backgroundColor = (pixel*) malloc(sizeof(pixel));
-		backgroundColor->R = 0;
-		backgroundColor->G = 0;
-		backgroundColor->B = 0;
+		Pixel* backgroundColor = (Pixel*) malloc(sizeof(Pixel));
+		backgroundColor.R = 0;
+		backgroundColor.G = 0;
+		backgroundColor.B = 0;
 		return backgroundColor;
 	}
 }
 
 // does the math to calculate a sphere intersection, and if the sphere was intersected then the distance to that sphere
-float ray_sphere_intersection(vector* rayVector, objectNode* oNode)
+double ray_sphere_intersection(V3 rayVector, Object object)
 {
-	float dx = rayVector->x;
-	float dy = rayVector->y;
-	float dz = rayVector->z;
-	float cx = oNode->position->x;
-	float cy = oNode->position->y;
-	float cz = oNode->position->z;
-	int r = oNode->radius;
-	float a = powf(dx,2)+powf(dy,2)+powf(dz,2);
-	float b = 2*dx*(0-cx)+2*dy*(0-cy)+2*dz*(0-cz);
-	float c = powf(cx,2)+powf(cy,2)+powf(cz,2)-powf(r,2);
-	float discriminant = powf(b,2)-4*a*c;
+	double a = v3_dot(rayVector,rayVector);
+	V3 positionScaled = malloc(sizeof(double)*3);
+	v3_scale(positionScaled,object.position,-2);
+	double b = -v3_dot(positionScaled,rayVector);
+	double c = v3_dot(object.position,object.position)-object.radius*object.radius;
+	double discriminant = (b*b)-4*a*c;
 
 	// if the discriminant is greater than 0, there was an intersection
 	if(discriminant>=0)
@@ -348,10 +309,10 @@ float ray_sphere_intersection(vector* rayVector, objectNode* oNode)
 }
 
 // does the math for a plane intersection and returns the distance to the plane if the intersection happened
-float ray_plane_intersection(vector* rayVector, objectNode* oNode)
+double ray_plane_intersection(V3 rayVector, Object* object)
 {
-	float num = dot_product(oNode->normal,oNode->position);
-	float den = dot_product(oNode->normal, rayVector);
+	float num = v3_dot(object.normal,object.position);
+	float den = v3_dot(object.normal, rayVector);
 	float t = num/den;
 	if(t>0)
 	{
@@ -363,44 +324,16 @@ float ray_plane_intersection(vector* rayVector, objectNode* oNode)
 	}
 }
 
-// does the dot product of two vectors
-float dot_product(vector* v, vector* u)
+// this function checks if input file exists 
+// and returns a 0 if the file exists and a 1 if not
+int check_file_path(char* fp)	
 {
-    float result = 0.0;
-    result += v->x*u->x;
-    result += v->y*u->y;
-    result += v->z*u->z;
-    return result;
-}*/
-
-double get_first_vector_value(char* line)
-{
-	// check to make sure that the '[' char is in the line
-	if(line[0]=='[')
-	{
-		char* value = get_string_after_char(line,'[');
-		// the string value should just be an int. If it is "0", that works. If the atoi of it is greater than 0, it is not a string and it is not negative
-		if(strcmp(value,"0") == 0 || atof(value) > 0)
-		{
-			return(atof(value));
-		}
-	}
-	fprintf(stderr, "ERROR: Values for Color,Position, and Normal properties must be in brackets and positive numbers\n");
-	exit(0);
-}
-
-double get_last_vector_value(char* line)
-{
-	// check to make sure that the '[' char is in the line
-	if(line[strlen(line)-1]==']')
-	{
-		char* value = cut_string_at_char(line,']');
-		// the string value should just be an int. If it is "0", that works. If the atoi of it is greater than 0, it is not a string and it is not negative
-		if(strcmp(value,"0") == 0 || atof(value) > 0)
-		{
-			return(atof(value));
-		}
-	}
-	fprintf(stderr, "ERROR: Values for Color,Position, and Normal properties must be in brackets and positive numbers\n");
-	exit(0);
+	FILE *file;
+	// if the file can be opened for reading, then it exists
+    if ((file = fopen(fp, "r")))
+    {
+        fclose(file);
+        return 1;
+    }
+    return 0;
 }

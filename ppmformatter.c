@@ -3,21 +3,15 @@
 int maxColor = 255;
 
 // write to file in p3 format
-void write_p3(FILE* fp, node* head, int width, int height)
+void write_p3(FILE* fp, Pixel* pixMap, int width, int height)
 {
     // write in the header
     fprintf(fp, "P3\n%d %d\n%d\n", width, height,maxColor);
 	// set current to the head of the linked list
     // current will then be used to loop through the entire list until the end, where the last node's next is NULL
     // for all the nodes in between the pixel will be written into the file.
-    node *current = head;
-    while(1) 
+    for(int i =0; i < width*height; i++) 
     {
-        if(current->next == NULL)
-        {
-            break;
-        }
-        fprintf(fp, "%d\n%d\n%d\n", (int) current->pix->R*maxColor, (int) current->pix->G*maxColor, (int) current->pix->B*maxColor);
-        current = current->next;
+        fprintf(fp, "%d\n%d\n%d\n", (int) pixMap[i].R*maxColor, (int) pixMap[i].G*maxColor, (int) pixMap[i].B*maxColor);
     }
 }
