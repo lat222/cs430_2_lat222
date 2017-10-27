@@ -12,6 +12,6 @@ void write_p3(FILE* fp, Pixel* pixMap, int width, int height)
     // for all the nodes in between the pixel will be written into the file.
     for(int i =0; i < width*height; i++) 
     {
-        fprintf(fp, "%d\n%d\n%d\n", (int) pixMap[i].R*maxColor, (int) pixMap[i].G*maxColor, (int) pixMap[i].B*maxColor);
+        fprintf(fp, "%d %d %d\n", (int) pixMap[i].R*maxColor, (int) pixMap[i].G*maxColor, (int) pixMap[i].B*maxColor);
     }
 }

@@ -1,6 +1,5 @@
 #include "raycast.h"
 
-
 Pixel* raycast(FILE* fp, int width, int height)
 {
 	// Read in the first line of the file and make sure it is a camera type object
@@ -9,7 +8,7 @@ Pixel* raycast(FILE* fp, int width, int height)
     size_t len = 0;
     ssize_t read;
 
-	float cw,ch; // these will be the camera width and height
+	float worldWidth,worldHeight; // these will be the camera width and height
 
 	// read in the camera line; assumes camera is the first object in the input file
 	if((read = getline(&line, &len, fp)) != -1)
@@ -25,8 +24,8 @@ Pixel* raycast(FILE* fp, int width, int height)
 				else if(strcmp(token,"height") == 0) object_read_in = 'h';	// check if the next property is height
 				else if(strcmp(token,"0") == 0 || atof(token) > 0)
 				{
-					if(object_read_in == 'w') cw = atof(token);
-					else if(object_read_in == 'h') ch = atof(token);
+					if(object_read_in == 'w') worldWidth = atof(token);
+					else if(object_read_in == 'h') worldHeight = atof(token);
 					else
 					{
 						fprintf(stderr, "ERROR: Camera property values must be numbers greater than 0\n");
@@ -214,17 +213,22 @@ Pixel* raycast(FILE* fp, int width, int height)
 
 	Pixel* pixMap = (Pixel*) malloc(sizeof(Pixel)*width*height);
 
-	long double pixheight = ch/height; // the height of one pixel
-	long double pixwidth = cw/width ; // the width of one pixel
+	r0 = malloc(sizeof(double)*3);
+	r0[0] = (double) cameraX;
+	r0[1] = (double) cameraY;
+	r0[2] = (double) cameraZ;
+
+	long double pixheight = worldHeight/height; // the height of one pixel
+	long double pixwidth = worldWidth/width ; // the width of one pixel
 
 	for(int rowCounter = 0; rowCounter < height; rowCounter++)
 	{ // for each row
-		float py = -(0 - ch / 2 + pixheight * (rowCounter + 0.5)); // y coord of row
+		double py = cameraY - worldHeight / 2 + pixheight * (rowCounter + 0.5); // y coord of row
 
 		for(int columnCounter = 0; columnCounter < width; columnCounter++)
 		{ // for each column
-			float px = 0 - cw / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
-			float pz = -1; // z coord is on screen TODO: Is this right?
+			double px = cameraX - worldWidth / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
+			double pz = -1; // z coord is on screen TODO: Is this right?
 			V3 ur = v3_unit(px,py,pz); // unit ray vector
 			V3 color = shoot(ur);
 			pixMap[rowCounter*width+columnCounter].R = color[0]; // return node with the color of what was hit first
@@ -240,46 +244,20 @@ Pixel* raycast(FILE* fp, int width, int height)
 V3 shoot(V3 rayVector)
 {
 	int hitObjectIndex = -1;
-	double lowest_t = -1; // no intersection so far
+	double lowestT = -1; // no intersection so far
 	// loop through the entire linked list of objects and set t to the closest intersected object
 	for(int i = 0; i < objectCount; i++ )
 	{
-		double result;
+		double result = -1;
 		// check if the object intersects with the vector
 		if(objects[i]->type == 's')
 		{
-			double a = v3_dot(rayVector,rayVector);
-
-			V3 positionScaled = malloc(sizeof(double)*3);
-			v3_scale(positionScaled,objects[i]->position,-2);
-			double b = v3_dot(positionScaled,rayVector);
-
-			V3 negativePosition = malloc((sizeof(double)*3));
-			v3_scale(negativePosition,objects[i]->position,-1);
-			double c = v3_dot(negativePosition,negativePosition)-objects[i]->radius*objects[i]->radius;
-
-			double discriminant = (b*b)-4*a*c;
-
-			// if the discriminant is greater than 0, there was an intersection
-			if(discriminant > 0)
-			{
-				double t0 = -b-pow(discriminant,0.5)/(2*a);
-				if(t0 > 0) result = t0;
-				else
-				{
-					double t1 = -b+pow(discriminant,0.5)/(2*a);
-					if(t1 > 0) result = t1;
-					else result = -1;
-				}
-			}
+			result = ray_sphere_intersection(rayVector,objects[i]);
 		}
 		else if(objects[i]->type == 'p')
 		{
-			double num = v3_dot(objects[i]->normal,objects[i]->position);
-			double den = v3_dot(objects[i]->normal, rayVector);
-			double t = num/den;
-			if(t > 0) result = t;
-			else result = -1;
+			result = ray_plane_intersection(rayVector,objects[i]);
+
 		}
 		else
 		{
@@ -287,10 +265,10 @@ V3 shoot(V3 rayVector)
 			exit(0);
 		}
 
-		if(result > 0 && (result < lowest_t || lowest_t == -1))	// this intersection is less than t is already so set t to this result and set hitobject to this object
+		if(result > 0 && (result < lowestT || lowestT == -1))	// this intersection is less than t is already so set t to this result and set hitobject to this object
 		{
 			//printf("%d - %f\t", i, result);
-			lowest_t = result;
+			lowestT = result;
 			hitObjectIndex = i;
 		}
 	}
@@ -313,37 +291,49 @@ V3 shoot(V3 rayVector)
 // does the math to calculate a sphere intersection, and if the sphere was intersected then the distance to that sphere
 double ray_sphere_intersection(V3 rayVector, Object* obj)
 {
+	// A = Xd^2 + Yd^2 + Zd^2
 	double a = v3_dot(rayVector,rayVector);
-	V3 positionScaled = malloc(sizeof(double)*3);
-	v3_scale(positionScaled,obj->position,-2);
-	double b = v3_dot(positionScaled,rayVector);
-	double c = v3_dot(obj->position,obj->position)-obj->radius*obj->radius;
+	// B = 2 * (Xd * (X0 - Xc) + Yd * (Y0 - Yc) + Zd * (Z0 - Zc))
+	double b = v3_dot(v3_scale(obj->position,-2),v3_subtract(r0,rayVector));
+	//(X0 - Xc)^2 + (Y0 - Yc)^2 + (Z0 - Zc)^2 - Sr^2
+	double c = v3_dot(v3_subtract(r0,rayVector),v3_subtract(r0,rayVector))-pow(obj->radius,2);
 	double discriminant = (b*b)-4*a*c;
+
+	//printf("a = %f, b = %f, c = %f, disc = %f\t",a,b,c,discriminant);
 
 	// if the discriminant is greater than 0, there was an intersection
 	if(discriminant>=0)
 	{
-		return -b-powf(discriminant,0.5)/(2*a);
+		double t0 = (-b-sqrt(discriminant))/(2*a);
+		if(t0 > 0) return t0;
+		else
+		{
+			double t1 = (-b+sqrt(discriminant))/(2*a);
+			if(t1>0) return t1;
+			else return -1;
+		}
 	}
 	else
 	{
-		return INFINITY;
+		return -1;
 	}
 }
 
 // does the math for a plane intersection and returns the distance to the plane if the intersection happened
 double ray_plane_intersection(V3 rayVector, Object* obj)
 {
-	float num = v3_dot(obj->normal,obj->position);
-	float den = v3_dot(obj->normal, rayVector);
-	float t = num/den;
+	double num = v3_dot(obj->normal,obj->position);
+	double den = v3_dot(obj->normal, rayVector);
+	if(den == 0) return -1;
+	double t = num/den;
+	//printf("num = %f, den = %f, t = %f",num,den,t);
 	if(t>0)
 	{
 		return t;
 	}
 	else
 	{
-		return INFINITY;
+		return -1;
 	}
 }
 
@@ -361,19 +351,31 @@ int check_file_path(char* fp)
     return 0;
 }
 
-
-void v3_scale(V3 c, V3 a, double b)
+V3 v3_subtract(V3 a, V3 b)
 {
+	V3 c = malloc(sizeof(double) * 3);
+
+	c[0] = a[0] - b[0];
+	c[1] = a[1] - b[1];
+	c[2] = a[2] - b[2];
+
+	return c;
+}
+
+V3 v3_scale(V3 a, double b)
+{
+	V3 c = malloc(sizeof(double) * 3);
+
 	c[0] = a[0] * b;
 	c[1] = a[1] * b;
 	c[2] = a[2] * b;
+
+	return c;
 }
 
 double v3_dot(V3 a, V3 b)
 {
-	double c;
-	c = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-	return c;
+	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
 
 V3 v3_assign(double a, double b, double c)
@@ -391,9 +393,11 @@ V3 v3_unit(double a, double b, double c)
 {
 	V3 vector = malloc(sizeof(double) * 3);
 
-	vector[0] = pow(a/(a*a+b*b+c*c),0.5);
-	vector[1] = pow(b/(a*a+b*b+c*c),0.5);
-	vector[2] = pow(c/(a*a+b*b+c*c),0.5);
+	double length = sqrt(a*a+b*b+c*c);
+
+	vector[0] = a/length;
+	vector[1] = b/length;
+	vector[2] = c/length;
 
 	return vector;
 }

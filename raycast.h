@@ -7,9 +7,14 @@
 #include <math.h>
 
 #define maxObjects 128
+
 #define backgroundColorR 0
 #define backgroundColorG 0
 #define backgroundColorB 0
+
+#define cameraX 0
+#define cameraY 0
+#define cameraZ 0
 
 typedef double* V3;
 
@@ -34,6 +39,7 @@ typedef struct Object
 // Global variables
 Object* objects[maxObjects];
 int objectCount;
+V3 r0;
 
 // calls all the following functions and returns a list of pixels
 Pixel* raycast(FILE* fp, int width, int height);
@@ -46,7 +52,8 @@ double ray_plane_intersection(V3 rayVector, Object* object);
 
 int check_file_path(char* fp);
 
-void v3_scale(V3 c, V3 a, double b);
+V3 v3_subtract(V3 a, V3 b);
+V3 v3_scale(V3 a, double b);
 double v3_dot(V3 a, V3 b);
 V3 v3_assign(double a, double b, double c);
 V3 v3_unit(double a, double b, double c);
