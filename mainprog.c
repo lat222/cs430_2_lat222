@@ -19,14 +19,24 @@ int main(int argc, char* argv[])
 			if(atoi(argv[1]) > 0 && atoi(argv[2]) > 0)
 			{
 				Pixel* pixMap  = raycast(fp,atoi(argv[1]),atoi(argv[2]));
-			    fclose(fp);		// done with the input file so close it
+			    if(fclose(fp) == EOF)		// done with the input file so close it
+			    {
+			    	fprintf(stderr, "ERROR: Input file would not close.\n");
+			    }
 				
 			    // WRITING BEGINS
 				fp = fopen(argv[4], "w");	// open the file to write to TODO: check if file opened
+				if(fp==NULL)
+				{
+					fprintf(stderr, "ERROR: Output file could not be written to.\n");
+				}
 
 				write_p3(fp, pixMap, atoi(argv[1]), atoi(argv[2]));
 
-				fclose(fp);		// done with the output file so close it
+				if(fclose(fp) == EOF)		// done with the output file so close it
+			    {
+			    	fprintf(stderr, "ERROR: Input file would not close.\n");
+			    }
 			}
 			else
 				fprintf(stderr, "Width (%s) or/and Height (%s) argument is not a number greater than 0\n",argv[1],argv[2]);
