@@ -69,7 +69,6 @@ V3 shoot(V3 rayVector)
 
 		if(result > 0 && (result < lowestT || lowestT == -1))	// this intersection is less than t is already so set t to this result and set hitobject to this object
 		{
-			//printf("%d - %f\t", i, result);
 			lowestT = result;
 			hitObjectIndex = i;
 		}
@@ -78,7 +77,6 @@ V3 shoot(V3 rayVector)
 	// return the pix of the intersected object
 	if(hitObjectIndex != -1)
 	{
-		//printf("Hit Object: %c%d - color: [%.02f,%.02f,%.02f]\t", objects[hitObjectIndex]->type,hitObjectIndex,objects[hitObjectIndex]->pix[0],objects[hitObjectIndex]->pix[1],objects[hitObjectIndex]->pix[2]);
 		return objects[hitObjectIndex]->pix;
 	}
 	// did not intersect anything, so return a background color pixel
@@ -100,8 +98,6 @@ double ray_sphere_intersection(V3 rayVector, Object* obj)
 	//(X0 - Xc)^2 + (Y0 - Yc)^2 + (Z0 - Zc)^2 - Sr^2
 	double c = v3_dot(v3_subtract(r0,obj->position),v3_subtract(r0,obj->position))-pow(obj->radius,2);
 	double discriminant = (b*b)-4*a*c;
-
-	//printf("disc = %.02f\t",discriminant);
 
 	// if the discriminant is greater than 0, there was an intersection
 	if(discriminant>=0)
@@ -130,7 +126,6 @@ double ray_plane_intersection(V3 rayVector, Object* obj)
 	double den = v3_dot(obj->normal, rayVector);
 	if(den == 0) return -1; // To avoid division by 0
 	double t = num/den;
-	//printf("num = %f, den = %f, t = %f",num,den,t);
 	if(t>0)
 	{
 		return t;
