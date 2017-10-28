@@ -29,7 +29,7 @@ Pixel* raycast(FILE* fp, int width, int height)
 		for(int columnCounter = 0; columnCounter < width; columnCounter++)
 		{ // for each column
 			double px = cameraX - worldWidth / 2 + pixwidth * (columnCounter + 0.5); // x coord of column
-			double pz = -1; // z coord is on screen TODO: Is this right?
+			double pz = cameraZ-1; // z coord is on screen
 			V3 ur = v3_unit(px,py,pz); // unit ray vector
 			V3 color = shoot(ur);
 			pixMap[rowCounter*width+columnCounter].R = color[0]; // return node with the color of what was hit first
@@ -54,6 +54,7 @@ V3 shoot(V3 rayVector)
 		if(objects[i]->type == 's')
 		{
 			result = ray_sphere_intersection(rayVector,objects[i]);
+			//printf("s%d: ",i);
 		}
 		else if(objects[i]->type == 'p')
 		{
@@ -77,7 +78,7 @@ V3 shoot(V3 rayVector)
 	// return the pix of the intersected object
 	if(hitObjectIndex != -1)
 	{
-		//printf("Hit Object: %d\t", hitObjectIndex);
+		//printf("Hit Object: %c%d - color: [%.02f,%.02f,%.02f]\t", objects[hitObjectIndex]->type,hitObjectIndex,objects[hitObjectIndex]->pix[0],objects[hitObjectIndex]->pix[1],objects[hitObjectIndex]->pix[2]);
 		return objects[hitObjectIndex]->pix;
 	}
 	// did not intersect anything, so return a background color pixel
@@ -95,12 +96,12 @@ double ray_sphere_intersection(V3 rayVector, Object* obj)
 	// A = Xd^2 + Yd^2 + Zd^2
 	double a = v3_dot(rayVector,rayVector);
 	// B = 2 * (Xd * (X0 - Xc) + Yd * (Y0 - Yc) + Zd * (Z0 - Zc))
-	double b = v3_dot(v3_scale(obj->position,-2),v3_subtract(r0,rayVector));
+	double b = 2*v3_dot(rayVector,v3_subtract(r0,obj->position));
 	//(X0 - Xc)^2 + (Y0 - Yc)^2 + (Z0 - Zc)^2 - Sr^2
-	double c = v3_dot(v3_subtract(r0,rayVector),v3_subtract(r0,rayVector))-pow(obj->radius,2);
+	double c = v3_dot(v3_subtract(r0,obj->position),v3_subtract(r0,obj->position))-pow(obj->radius,2);
 	double discriminant = (b*b)-4*a*c;
 
-	//printf("a = %f, b = %f, c = %f, disc = %f\t",a,b,c,discriminant);
+	//printf("disc = %.02f\t",discriminant);
 
 	// if the discriminant is greater than 0, there was an intersection
 	if(discriminant>=0)
@@ -123,9 +124,11 @@ double ray_sphere_intersection(V3 rayVector, Object* obj)
 // does the math for a plane intersection and returns the distance to the plane if the intersection happened
 double ray_plane_intersection(V3 rayVector, Object* obj)
 {
-	double num = v3_dot(obj->normal,obj->position);
+	// -Pn*R0+D
+	double num = -1*(v3_dot(obj->normal,r0) + -1*v3_dot(obj->position,obj->normal));
+	// Pn*Rd
 	double den = v3_dot(obj->normal, rayVector);
-	if(den == 0) return -1;
+	if(den == 0) return -1; // To avoid division by 0
 	double t = num/den;
 	//printf("num = %f, den = %f, t = %f",num,den,t);
 	if(t>0)
@@ -265,6 +268,10 @@ void read_file(FILE* fp)
 
 		}
 		free(token);
+	}
+	else
+	{
+		fprintf(stderr, "ERROR: Empty input file.\n");
 	}
 
 
@@ -414,7 +421,7 @@ void read_file(FILE* fp)
 							}
 							else if(property_read_in == 'r')
 							{
-								if(strcmp(token,"0") == 0 || atoi(token) > 0) object->radius = atoi(token);
+								if(strcmp(token,"0") == 0 || atof(token) > 0) object->radius = atof(token);
 								else
 								{
 									fprintf(stderr, "ERROR: Values for the Radius Property must be positive numbers.\n");
