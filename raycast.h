@@ -40,6 +40,7 @@ typedef struct Object
 Object* objects[maxObjects];
 int objectCount;
 V3 r0;
+float worldWidth,worldHeight; // these will be the camera width and height
 
 // calls all the following functions and returns a list of pixels
 Pixel* raycast(FILE* fp, int width, int height);
@@ -57,5 +58,8 @@ V3 v3_scale(V3 a, double b);
 double v3_dot(V3 a, V3 b);
 V3 v3_assign(double a, double b, double c);
 V3 v3_unit(double a, double b, double c);
+
+void read_file(FILE* fp);
+int count_char_in_string(char* inString, char charToCount);
 
 #endif
