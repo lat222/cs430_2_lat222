@@ -22,6 +22,7 @@ int main(int argc, char* argv[])
 			    if(fclose(fp) == EOF)		// done with the input file so close it
 			    {
 			    	fprintf(stderr, "ERROR: Input file would not close.\n");
+			    	return 1;
 			    }
 				
 			    // WRITING BEGINS
@@ -29,6 +30,7 @@ int main(int argc, char* argv[])
 				if(fp==NULL)
 				{
 					fprintf(stderr, "ERROR: Output file could not be written to.\n");
+					return 1;
 				}
 
 				write_p3(fp, pixMap, atoi(argv[1]), atoi(argv[2]));
@@ -36,6 +38,7 @@ int main(int argc, char* argv[])
 				if(fclose(fp) == EOF)		// done with the output file so close it
 			    {
 			    	fprintf(stderr, "ERROR: Input file would not close.\n");
+			    	return 1;
 			    }
 			}
 			else
